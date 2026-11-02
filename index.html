@@ -24,227 +24,50 @@
             --border-color: #26354a;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .navbar { background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); height: 55px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
+        .navbar-brand { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; }
+        .navbar-brand span { color: var(--accent-green); font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .navbar-brand span::before { content: ''; display: inline-block; width: 8px; height: 8px; background-color: var(--accent-green); border-radius: 50%; box-shadow: 0 0 8px var(--accent-green); }
+        .navbar-menu { display: flex; gap: 10px; }
+        .navbar-item { color: var(--text-muted); text-decoration: none; font-size: 14px; padding: 6px 14px; border-radius: 6px; background: transparent; border: none; cursor: pointer; font-weight: 500; }
+        .navbar-item.active { color: var(--text-main); background-color: var(--bg-card); }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        .app-container { display: flex; flex: 1; overflow: hidden; position: relative; }
+        .view-section { display: flex; width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; }
+        .view-section.active-view { opacity: 1; pointer-events: auto; position: relative; }
 
-        .navbar {
-            background-color: var(--bg-sidebar);
-            border-bottom: 1px solid var(--border-color);
-            height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
-        }
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .navbar-brand span {
-            color: var(--accent-green);
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .navbar-brand span::before {
-            content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-green);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent-green);
-        }
-
-        .navbar-menu {
-            display: flex;
-            gap: 10px;
-        }
-
-        .navbar-item {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            padding: 6px 14px;
-            border-radius: 6px;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .navbar-item.active {
-            color: var(--text-main);
-            background-color: var(--bg-card);
-        }
-
-        .app-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-            height: calc(100vh - 55px);
-        }
-
-        /* Vistas generales */
-        .view-section {
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
-
-        .view-section.active-view {
-            display: flex;
-        }
-
-        .sidebar {
-            width: 320px;
-            background-color: var(--bg-sidebar);
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid var(--border-color);
-            z-index: 10;
-            height: 100%;
-        }
-
-        .sidebar-right {
-            width: 340px;
-            border-right: none;
-            border-left: 1px solid var(--border-color);
-            background-color: var(--bg-sidebar);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .search-box {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .search-input {
-            width: 100%;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px 12px;
-            color: var(--text-main);
-            font-size: 14px;
-            outline: none;
-        }
-
-        .filter-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .filter-pill {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-        }
-
-        .filter-pill.active {
-            background-color: var(--bg-card-active);
-            color: var(--text-main);
-            border-color: var(--text-muted);
-        }
-
+        .sidebar { width: 340px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); z-index: 10; }
+        .sidebar-right { width: 340px; border-right: none; border-left: 1px solid var(--border-color); }
+        
+        .search-box { padding: 15px; border-bottom: 1px solid var(--border-color); }
+        .search-input { width: 100%; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; color: var(--text-main); font-size: 14px; outline: none; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 15px; border-bottom: 1px solid var(--border-color); }
+        .filter-pill { background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+        .filter-pill.active { background-color: var(--bg-card-active); color: var(--text-main); border-color: var(--text-muted); }
         .filter-pill.pill-todos.active { border-left: 3px solid var(--text-main); }
         .filter-pill.pill-ave.active { border-left: 3px solid var(--accent-ave); }
         .filter-pill.pill-avlo.active { border-left: 3px solid var(--accent-avlo); }
         .filter-pill.pill-alvia.active { border-left: 3px solid var(--accent-alvia); }
         .filter-pill.pill-md.active { border-left: 3px solid var(--accent-md); }
         .filter-pill.pill-cercanias.active { border-left: 3px solid var(--accent-cercanias); }
+        .pill-count { background-color: var(--bg-main); padding: 2px 6px; border-radius: 10px; font-size: 11px; }
 
-        .pill-count {
-            background-color: var(--bg-main);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-        }
-
-        .train-list-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .train-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .train-card:hover {
-            background-color: rgba(24, 34, 50, 0.8);
-        }
-
-        .train-card.active {
-            background-color: var(--bg-card-active);
-            border-color: var(--text-muted);
-        }
-
-        .train-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .badge {
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #fff;
-        }
-
+        .train-list-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .train-card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; cursor: pointer; transition: background-color 0.2s; }
+        .train-card.active { background-color: var(--bg-card-active); border-color: var(--text-muted); }
+        .train-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        
+        .badge { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: #fff; }
         .badge-ave { background-color: var(--accent-ave); }
         .badge-avlo { background-color: var(--accent-avlo); color: #000; }
         .badge-alvia { background-color: var(--accent-alvia); }
         .badge-md { background-color: var(--accent-md); }
         .badge-cercanias { background-color: var(--accent-cercanias); }
-
+        
         .train-id { font-size: 13px; font-weight: 600; margin-left: 6px; }
         .train-status { font-size: 11px; color: var(--accent-green); }
         .train-route { font-size: 13px; margin-bottom: 6px; }
@@ -252,16 +75,11 @@
 
         .map-wrapper { flex: 1; height: 100%; position: relative; }
         #map { width: 100%; height: 100%; background-color: var(--bg-main); }
-
-        /* Capa oscura para Leaflet */
-        .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-container {
-            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-        }
+        .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-container { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
 
         .detail-header { padding: 15px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-card); }
         .detail-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
         .detail-route-title { font-size: 14px; font-weight: bold; margin-top: 5px; }
-
         .metrics-grid { padding: 15px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--border-color); }
         .metric-row { display: flex; justify-content: space-between; font-size: 13px; }
         .metric-label { color: var(--text-muted); }
@@ -272,7 +90,6 @@
         .timeline-item::before { content: ''; position: absolute; left: 5px; top: 16px; bottom: 0; width: 2px; background-color: var(--border-color); }
         .timeline-item:last-child::before { display: none; }
         .timeline-node { position: absolute; left: 0; top: 4px; width: 12px; height: 12px; border-radius: 50%; background-color: var(--bg-sidebar); border: 2px solid var(--border-color); }
-
         .timeline-item.passed .timeline-node { background-color: var(--accent-green); border-color: var(--accent-green); }
         .timeline-item.passed::before { background-color: var(--accent-green); }
         .timeline-item.current .timeline-node { background-color: var(--bg-main); border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.4); }
@@ -280,18 +97,10 @@
         .timeline-time { font-size: 11px; color: var(--text-muted); }
         .no-selection-msg { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
-        /* Estilos de las pestañas independientes */
-        .full-list-view, .incidents-view {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            background-color: var(--bg-main);
-            height: 100%;
-        }
+        .full-list-view, .incidents-view { flex: 1; padding: 30px; overflow-y: auto; background-color: var(--bg-main); }
         .section-title { font-size: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        
         .incidents-grid { display: flex; flex-direction: column; gap: 12px; max-width: 800px; }
-        .incident-card { background-color: var(--bg-sidebar); border-left: 4px solid var(--accent-red); padding: 15px; border-radius: 4px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .incident-card { background-color: var(--bg-sidebar); border-left: 4px solid var(--accent-red); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-red); }
         .incident-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; color: #fca5a5; }
         .incident-desc { font-size: 13px; color: var(--text-muted); }
     </style>
@@ -301,14 +110,13 @@
     <header class="navbar">
         <div class="navbar-brand">Trenes España en Tiempo Real <span>En directo</span></div>
         <nav class="navbar-menu">
-            <button class="navbar-item active" onclick="switchView('map-view', this)">Mapa</button>
-            <button class="navbar-item" onclick="switchView('trains-view', this)">Trenes</button>
-            <button class="navbar-item" onclick="switchView('incidents-view', this)">Incidencias</button>
+            <button class="navbar-item active" onclick="switchView('map-view')">Mapa</button>
+            <button class="navbar-item" onclick="switchView('trains-view')">Trenes</button>
+            <button class="navbar-item" onclick="switchView('incidents-view')">Incidencias</button>
         </nav>
     </header>
 
-    <main class="app-container">
-        <!-- VISTA DE MAPA -->
+    <div class="app-container">
         <div id="map-view" class="view-section active-view">
             <section class="sidebar">
                 <div class="search-box">
@@ -344,47 +152,60 @@
             </section>
         </div>
 
-        <!-- VISTA DE LISTA COMPLETA -->
         <div id="trains-view" class="view-section full-list-view">
-            <div style="width:100%">
-                <h2 class="section-title">Todos los trenes en circulación</h2>
-                <div id="fullTrainsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;"></div>
-            </div>
+            <h2 class="section-title">Todos los trenes en circulación</h2>
+            <div id="fullTrainsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;"></div>
         </div>
 
-        <!-- VISTA DE INCIDENCIAS -->
         <div id="incidents-view" class="view-section incidents-view">
-            <div style="width:100%">
-                <h2 class="section-title">Incidencias de la Red Ferroviaria</h2>
-                <div class="incidents-grid">
-                    <div class="incident-card">
-                        <div class="incident-title">Retraso por avería técnica - Línea AVE Madrid-Barcelona</div>
-                        <div class="incident-desc">Afectados trenes con paso regulado cerca de Calatayud. Demoras estimadas entre 15 y 25 minutos. Técnicos trabajando en zona.</div>
-                    </div>
-                    <div class="incident-card">
-                        <div class="incident-title">Condiciones meteorológicas - Red Cercanías Asturias</div>
-                        <div class="incident-desc">Ralentización de la marcha entre Oviedo y Gijón por fuerte temporal de lluvia y desprendimientos menores en el margen de la vía.</div>
-                    </div>
-                    <div class="incident-card">
-                        <div class="incident-title">Obras de mejora - Corredor Mediterráneo</div>
-                        <div class="incident-desc">Modificación de horarios y desvíos puntuales en servicios de Media Distancia entre Castellón y Tarragona debido a la adecuación de infraestructura.</div>
-                    </div>
-                </div>
+            <h2 class="section-title">Incidencias de la Red Ferroviaria</h2>
+            <div class="incidents-grid">
+                <div class="incident-card"><div class="incident-title">Retraso por avería técnica - Línea AVE Madrid-Barcelona</div><div class="incident-desc">Afectados trenes con paso regulado cerca de Calatayud. Demoras estimadas entre 15 y 25 minutos.</div></div>
+                <div class="incident-card"><div class="incident-title">Condiciones meteorológicas - Red Cercanías Asturias</div><div class="incident-desc">Ralentización de la marcha generalizada por fuerte temporal de lluvia entre Oviedo y Gijón.</div></div>
+                <div class="incident-card"><div class="incident-title">Obras de mejora - Corredor Mediterráneo</div><div class="incident-desc">Modificación de horarios puntuales en servicios de Media Distancia entre Castellón y Tarragona.</div></div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const trainsData = [
-            { id: '03121', type: 'ave', label: 'AVE', origin: 'Madrid P. Atocha', destination: 'Barcelona Sants', eta: '15:42', delay: '-2 min', speed: '298 km/h', currentLocationName: 'Cerca de Guadalajara', coordinates: [40.63, -3.16], timeline: [{ station: 'Madrid P. Atocha', time: '13:00', state: 'passed' }, { station: 'Guadalajara', time: '13:29', state: 'current' }, { station: 'Barcelona Sants', time: '15:42', state: 'future' }] },
-            { id: '03092', type: 'ave', label: 'AVE', origin: 'Barcelona Sants', destination: 'Sevilla S. Justa', eta: '16:58', delay: '0 min', speed: '250 km/h', currentLocationName: 'Próximo a Zaragoza', coordinates: [41.65, -0.88], timeline: [{ station: 'Barcelona Sants', time: '14:10', state: 'passed' }, { station: 'Zaragoza', time: '15:02', state: 'current' }, { station: 'Sevilla Justa', time: '16:58', state: 'future' }] },
-            { id: '00613', type: 'avlo', label: 'AVLO', origin: 'Madrid P. Atocha', destination: 'Valencia J. Sorolla', eta: '14:49', delay: '+5 min', speed: '280 km/h', currentLocationName: 'Tramo Cuenca', coordinates: [40.07, -2.13], timeline: [{ station: 'Madrid Atocha', time: '13:15', state: 'passed' }, { station: 'Valencia Sorolla', time: '14:49', state: 'current' }] },
-            { id: '04171', type: 'alvia', label: 'ALVIA', origin: 'A Coruña', destination: 'Madrid Chamartín', eta: '15:26', delay: '0 min', speed: '210 km/h', currentLocationName: 'Cerca de Valladolid', coordinates: [41.65, -4.72], timeline: [{ station: 'A Coruña', time: '11:20', state: 'passed' }, { station: 'Madrid Chamartín', time: '15:26', state: 'current' }] }
-        ];
+        const trainsData = [];
+        const stations = {
+            madrid: [40.406, -3.689], barcelona: [41.379, 2.140], sevilla: [37.392, -5.975], valencia: [39.466, -0.377],
+            zaragoza: [41.648, -0.909], malaga: [36.712, -4.432], bilbao: [43.260, -2.928], valladolid: [41.648, -4.729],
+            coruna: [43.351, -8.411], alicante: [38.345, -0.495], cordoba: [37.892, -4.789], burgos: [42.339, -3.696]
+        };
+
+        function generateMassiveData() {
+            const types = ['ave', 'avlo', 'alvia', 'md', 'cercanias'];
+            const labels = { ave: 'AVE', avlo: 'AVLO', alvia: 'ALVIA', md: 'M.D.', cercanias: 'Cercanías' };
+            const keys = Object.keys(stations);
+            
+            for(let i=1000; i<1125; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const s1 = keys[Math.floor(Math.random() * keys.length)];
+                let s2 = keys[Math.floor(Math.random() * keys.length)];
+                while(s1 === s2) s2 = keys[Math.floor(Math.random() * keys.length)];
+
+                const lat = stations[s1][0] + (Math.random() - 0.5) * 1.8;
+                const lng = stations[s1][1] + (Math.random() - 0.5) * 1.8;
+                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*70)+90;
+
+                trainsData.push({
+                    id: String(i), type: type, label: labels[type],
+                    origin: s1.toUpperCase(), destination: s2.toUpperCase(),
+                    eta: `${Math.floor(Math.random()*4)+14}:${Math.floor(Math.random()*50)+10}`,
+                    delay: Math.random() > 0.7 ? `+${Math.floor(Math.random()*15)} min` : '0 min',
+                    speed: `${speed} km/h`, currentLocationName: `Tramo próximo a ${s1.toUpperCase()}`,
+                    coordinates: [lat, lng],
+                    timeline: [{ station: s1.toUpperCase(), time: '13:10', state: 'passed' }, { station: 'Control Intermedio', time: 'En paso', state: 'current' }, { station: s2.toUpperCase(), time: 'Destino', state: 'future' }]
+                });
+            }
+        }
+        generateMassiveData();
 
         let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup;
-        const typeColors = { ave: 'var(--accent-ave)', avlo: 'var(--accent-avlo)', alvia: 'var(--accent-alvia)', md: 'var(--accent-md)', cercanias: 'var(--accent-cercanias)' };
+        const typeColors = { ave: '#b0357c', avlo: '#a3cc39', alvia: '#2384af', md: '#e07a3c', cercanias: '#1d92bd' };
 
         document.addEventListener('DOMContentLoaded', () => {
             map = L.map('map', { zoomControl: true, attributionControl: false }).setView([40.41, -3.70], 6);
@@ -395,35 +216,35 @@
             render(); 
             setupEvents();
             renderFullGrid();
+
+            setInterval(() => {
+                trainsData.forEach(t => {
+                    t.coordinates[0] += (Math.random() - 0.5) * 0.02;
+                    t.coordinates[1] += (Math.random() - 0.5) * 0.02;
+                });
+                render();
+            }, 3000);
         });
 
-        function switchView(viewId, clickedButton) {
+        function switchView(viewId) {
             document.querySelectorAll('.navbar-item').forEach(btn => btn.classList.remove('active'));
-            if(clickedButton) clickedButton.classList.add('active');
-
+            if(event) event.target.classList.add('active');
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
             document.getElementById(viewId).classList.add('active-view');
-
-            if(viewId === 'map-view' && map) {
-                setTimeout(() => { map.invalidateSize(); }, 50);
-            }
+            if(viewId === 'map-view' && map) { setTimeout(() => { map.invalidateSize(); }, 50); }
         }
 
         function updateCounters() {
             const counts = { all: trainsData.length, ave: 0, avlo: 0, alvia: 0, md: 0, cercanias: 0 };
             trainsData.forEach(t => { if(counts[t.type] !== undefined) counts[t.type]++; });
-            Object.keys(counts).forEach(k => {
-                const el = document.getElementById(`count-${k}`);
-                if(el) el.innerText = counts[k];
-            });
+            Object.keys(counts).forEach(k => { document.getElementById(`count-${k}`).innerText = counts[k]; });
         }
 
         function getFiltered() {
             return trainsData.filter(t => {
                 const fMatch = activeFilter === 'all' || t.type === activeFilter;
                 const q = searchQuery.toLowerCase();
-                const sMatch = !q || t.id.includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q);
-                return fMatch && sMatch;
+                return fMatch && (!q || t.id.includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q));
             });
         }
 
@@ -437,22 +258,15 @@
             filtered.forEach(t => {
                 const card = document.createElement('div');
                 card.className = `train-card ${selectedTrainId === t.id ? 'active' : ''}`;
-                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Previsto: ${t.eta} <span class="metric-delay-tag">${t.delay}</span></div>`;
+                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Llegada: ${t.eta} <span class="metric-delay-tag">${t.delay}</span></div>`;
                 card.addEventListener('click', () => select(t));
                 list.appendChild(card);
 
                 const c = typeColors[t.type] || '#ffffff';
                 const marker = L.marker(t.coordinates, {
-                    icon: L.divIcon({ 
-                        className: 'custom-div-icon', 
-                        html: `<div style="background:${c};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${c};cursor:pointer;"></div>`
-                    })
+                    icon: L.divIcon({ className: 'c-icon', html: `<div style="background:${c};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${c};"></div>` })
                 });
-                marker.on('click', () => {
-                    const btnMapa = document.querySelector("button[onclick*='map-view']");
-                    switchView('map-view', btnMapa);
-                    select(t, false);
-                });
+                marker.on('click', () => { select(t, false); });
                 markersGroup.addLayer(marker);
             });
         }
@@ -464,19 +278,14 @@
             trainsData.forEach(t => {
                 const card = document.createElement('div');
                 card.className = 'train-card';
-                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route" style="font-weight:bold;margin:8px 0;">${t.origin} → ${t.destination}</div><div class="train-eta">Velocidad: ${t.speed}</div><div class="train-eta" style="margin-top:4px;">Ubicación: ${t.currentLocationName}</div>`;
-                card.addEventListener('click', () => {
-                    const btnMapa = document.querySelector("button[onclick*='map-view']");
-                    switchView('map-view', btnMapa);
-                    select(t, true);
-                });
+                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div></div><div class="train-route" style="font-weight:bold;margin:8px 0;">${t.origin} → ${t.destination}</div><div class="train-eta">Velocidad: ${t.speed}</div>`;
+                card.addEventListener('click', () => { switchView('map-view'); select(t, true); });
                 grid.appendChild(card);
             });
         }
 
         function select(t, fly = true) {
             selectedTrainId = t.id;
-            
             document.querySelectorAll('.train-card').forEach(c => c.classList.remove('active'));
             render();
 
@@ -486,7 +295,7 @@
             document.getElementById('sidebarContent').style.display = 'block';
             document.getElementById('detailBadge').className = `badge badge-${t.type}`;
             document.getElementById('detailBadge').innerText = t.label;
-            document.getElementById('detailId').innerText = t.id;
+            document.getElementById('detailId').innerText = `#${t.id}`;
             document.getElementById('detailRoute').innerText = `${t.origin} → ${t.destination}`;
             document.getElementById('metricLocation').innerText = t.currentLocationName;
             document.getElementById('metricSpeed').innerText = t.speed;
@@ -503,11 +312,7 @@
         }
 
         function setupEvents() {
-            const searchInput = document.getElementById('trainSearch');
-            if(searchInput) {
-                searchInput.addEventListener('input', (e) => { searchQuery = e.target.value; render(); });
-            }
-            
+            document.getElementById('trainSearch').addEventListener('input', (e) => { searchQuery = e.target.value; render(); });
             document.querySelectorAll('.filter-pill').forEach(p => {
                 p.addEventListener('click', () => {
                     document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
