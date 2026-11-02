@@ -18,7 +18,7 @@
             --accent-avlo: #a3cc39;
             --accent-alvia: #2384af;
             --accent-md: #e07a3c;
-            --accent-cercanias: #1d92bd;
+            --accent-rodalies: #1d92bd;
             --accent-green: #3cd070;
             --accent-red: #ef4444;
             --border-color: #26354a;
@@ -53,7 +53,7 @@
         .filter-pill.pill-avlo.active { border-left: 3px solid var(--accent-avlo); }
         .filter-pill.pill-alvia.active { border-left: 3px solid var(--accent-alvia); }
         .filter-pill.pill-md.active { border-left: 3px solid var(--accent-md); }
-        .filter-pill.pill-cercanias.active { border-left: 3px solid var(--accent-cercanias); }
+        .filter-pill.pill-rodalies.active { border-left: 3px solid var(--accent-rodalies); }
         .pill-count { background-color: var(--bg-main); padding: 2px 6px; border-radius: 10px; font-size: 11px; }
 
         .train-list-container { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -66,7 +66,7 @@
         .badge-avlo { background-color: var(--accent-avlo); color: #000; }
         .badge-alvia { background-color: var(--accent-alvia); }
         .badge-md { background-color: var(--accent-md); }
-        .badge-cercanias { background-color: var(--accent-cercanias); }
+        .badge-rodalies { background-color: var(--accent-rodalies); }
         
         .train-id { font-size: 13px; font-weight: 600; margin-left: 6px; }
         .train-status { font-size: 11px; color: var(--accent-green); }
@@ -128,7 +128,7 @@
                     <button class="filter-pill pill-avlo" data-filter="avlo">AVLO <span class="pill-count" id="count-avlo">0</span></button>
                     <button class="filter-pill pill-alvia" data-filter="alvia">ALVIA <span class="pill-count" id="count-alvia">0</span></button>
                     <button class="filter-pill pill-md" data-filter="md">M.D. <span class="pill-count" id="count-md">0</span></button>
-                    <button class="filter-pill pill-cercanias" data-filter="cercanias">Cercanías <span class="pill-count" id="count-cercanias">0</span></button>
+                    <button class="filter-pill pill-rodalies" data-filter="rodalies">Rodalies <span class="pill-count" id="count-rodalies">0</span></button>
                 </div>
                 <div class="train-list-container" id="trainList"></div>
             </section>
@@ -161,7 +161,7 @@
             <h2 class="section-title">Incidencias de la Red Ferroviaria</h2>
             <div class="incidents-grid">
                 <div class="incident-card"><div class="incident-title">Retraso por avería técnica - Línea AVE Madrid-Barcelona</div><div class="incident-desc">Afectados trenes con paso regulado cerca de Calatayud. Demoras estimadas entre 15 y 25 minutos.</div></div>
-                <div class="incident-card"><div class="incident-title">Condiciones meteorológicas - Red Cercanías Asturias</div><div class="incident-desc">Ralentización de la marcha generalizada por fuerte temporal de lluvia entre Oviedo y Gijón.</div></div>
+                <div class="incident-card"><div class="incident-title">Condiciones meteorológicas - Red Rodalies Catalunya</div><div class="incident-desc">Ralentización de la marcha generalizada por fuerte temporal de lluvia en la línea R1 cerca de Mataró.</div></div>
                 <div class="incident-card"><div class="incident-title">Obras de mejora - Corredor Mediterráneo</div><div class="incident-desc">Modificación de horarios puntuales en servicios de Media Distancia entre Castellón y Tarragona.</div></div>
             </div>
         </div>
@@ -173,26 +173,38 @@
         const stations = {
             madrid: [40.406, -3.689], barcelona: [41.379, 2.140], sevilla: [37.392, -5.975], valencia: [39.466, -0.377],
             zaragoza: [41.648, -0.909], malaga: [36.712, -4.432], bilbao: [43.260, -2.928], valladolid: [41.648, -4.729],
-            coruna: [43.351, -8.411], alicante: [38.345, -0.495], cordoba: [37.892, -4.789], burgos: [42.339, -3.696]
+            coruna: [43.351, -8.411], alicante: [38.345, -0.495], cordoba: [37.892, -4.789], burgos: [42.339, -3.696],
+            girona: [41.979, 2.819], tarragona: [41.118, 1.244], lleida: [41.616, 0.628]
         };
 
         function generateMassiveData() {
-            const types = ['ave', 'avlo', 'alvia', 'md', 'cercanias'];
-            const labels = { ave: 'AVE', avlo: 'AVLO', alvia: 'ALVIA', md: 'M.D.', cercanias: 'Cercanías' };
+            const types = ['ave', 'avlo', 'alvia', 'md', 'rodalies'];
+            const labels = { ave: 'AVE', avlo: 'AVLO', alvia: 'ALVIA', md: 'M.D.', rodalies: 'Rodalies' };
             const keys = Object.keys(stations);
+            const rLines = ['R1', 'R2 Sud', 'R3', 'R4', 'R11'];
             
-            for(let i=1000; i<1125; i++) {
+            for(let i=1000; i<1135; i++) {
                 const type = types[Math.floor(Math.random() * types.length)];
-                const s1 = keys[Math.floor(Math.random() * keys.length)];
+                let s1 = keys[Math.floor(Math.random() * keys.length)];
                 let s2 = keys[Math.floor(Math.random() * keys.length)];
-                while(s1 === s2) s2 = keys[Math.floor(Math.random() * keys.length)];
+                
+                if (type === 'rodalies') {
+                    const catStations = ['barcelona', 'girona', 'tarragona', 'lleida'];
+                    s1 = catStations[Math.floor(Math.random() * catStations.length)];
+                    s2 = catStations[Math.floor(Math.random() * catStations.length)];
+                    while(s1 === s2) s2 = catStations[Math.floor(Math.random() * catStations.length)];
+                } else {
+                    while(s1 === s2) s2 = keys[Math.floor(Math.random() * keys.length)];
+                }
 
-                const lat = stations[s1][0] + (Math.random() - 0.5) * 1.8;
-                const lng = stations[s1][1] + (Math.random() - 0.5) * 1.8;
-                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*70)+90;
+                const lat = stations[s1] + (Math.random() - 0.5) * 0.9;
+                const lng = stations[s1] + (Math.random() - 0.5) * 0.9;
+                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*40)+75;
+                
+                const trainLabel = type === 'rodalies' ? rLines[Math.floor(Math.random() * rLines.length)] : labels[type];
 
                 trainsData.push({
-                    id: String(i), type: type, label: labels[type],
+                    id: String(i), type: type, label: trainLabel,
                     origin: s1.toUpperCase(), destination: s2.toUpperCase(),
                     eta: `${Math.floor(Math.random()*4)+14}:${Math.floor(Math.random()*50)+10}`,
                     delay: Math.random() > 0.7 ? `+${Math.floor(Math.random()*15)} min` : '0 min',
@@ -205,7 +217,7 @@
         generateMassiveData();
 
         let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup;
-        const typeColors = { ave: '#b0357c', avlo: '#a3cc39', alvia: '#2384af', md: '#e07a3c', cercanias: '#1d92bd' };
+        const typeColors = { ave: '#b0357c', avlo: '#a3cc39', alvia: '#2384af', md: '#e07a3c', rodalies: '#1d92bd' };
 
         document.addEventListener('DOMContentLoaded', () => {
             map = L.map('map', { zoomControl: true, attributionControl: false }).setView([40.41, -3.70], 6);
@@ -219,8 +231,8 @@
 
             setInterval(() => {
                 trainsData.forEach(t => {
-                    t.coordinates[0] += (Math.random() - 0.5) * 0.02;
-                    t.coordinates[1] += (Math.random() - 0.5) * 0.02;
+                    t.coordinates[0] += (Math.random() - 0.5) * 0.015;
+                    t.coordinates[1] += (Math.random() - 0.5) * 0.015;
                 });
                 render();
             }, 3000);
@@ -235,7 +247,7 @@
         }
 
         function updateCounters() {
-            const counts = { all: trainsData.length, ave: 0, avlo: 0, alvia: 0, md: 0, cercanias: 0 };
+            const counts = { all: trainsData.length, ave: 0, avlo: 0, alvia: 0, md: 0, rodalies: 0 };
             trainsData.forEach(t => { if(counts[t.type] !== undefined) counts[t.type]++; });
             Object.keys(counts).forEach(k => { document.getElementById(`count-${k}`).innerText = counts[k]; });
         }
@@ -244,7 +256,7 @@
             return trainsData.filter(t => {
                 const fMatch = activeFilter === 'all' || t.type === activeFilter;
                 const q = searchQuery.toLowerCase();
-                return fMatch && (!q || t.id.includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q));
+                return fMatch && (!q || t.id.includes(q) || t.label.toLowerCase().includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q));
             });
         }
 
@@ -258,7 +270,7 @@
             filtered.forEach(t => {
                 const card = document.createElement('div');
                 card.className = `train-card ${selectedTrainId === t.id ? 'active' : ''}`;
-                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Llegada: ${t.eta} <span class="metric-delay-tag">${t.delay}</span></div>`;
+                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Llegada: ${t.eta} <span class="metric-delay-tag" style="background:${t.delay !== '0 min' ? 'rgba(239,68,68,0.2)':'rgba(60,208,112,0.15)'};color:${t.delay !== '0 min'?'var(--accent-red)':'var(--accent-green)'}">${t.delay}</span></div>`;
                 card.addEventListener('click', () => select(t));
                 list.appendChild(card);
 
@@ -289,7 +301,7 @@
             document.querySelectorAll('.train-card').forEach(c => c.classList.remove('active'));
             render();
 
-            if(fly && map) map.flyTo(t.coordinates, 8);
+            if(fly && map) map.flyTo(t.coordinates, 9);
 
             document.getElementById('emptySidebarMsg').style.display = 'none';
             document.getElementById('sidebarContent').style.display = 'block';
