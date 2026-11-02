@@ -5,21 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trenes España en Tiempo Real</title>
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-main: #0d1117;
-            --bg-sidebar: #161b22;
-            --bg-card: #21262d;
-            --text-main: #f0f6fc;
-            --text-muted: #8b949e;
-            --border: #30363d;
-            --accent-ave: #b620e0;
-            --accent-avlo: #9e005d;
-            --accent-alvia: #0070f3;
-            --accent-md: #e056fd;
-            --accent-cercanias: #00a8ff;
-            --accent-green: #2ea44f;
+            --bg-main: #0c111a;
+            --bg-sidebar: #121824;
+            --bg-card: #182232;
+            --bg-card-active: #223147;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+            --accent-ave: #b0357c;
+            --accent-avlo: #a3cc39;
+            --accent-alvia: #2384af;
+            --accent-md: #e07a3c;
+            --accent-cercanias: #1d92bd;
+            --accent-green: #3cd070;
+            --accent-red: #ef4444;
+            --border-color: #26354a;
         }
 
         * {
@@ -32,709 +34,489 @@
         body {
             background-color: var(--bg-main);
             color: var(--text-main);
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
             overflow: hidden;
         }
 
-        /* Top Navbar */
-        header {
+        .navbar {
             background-color: var(--bg-sidebar);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-color);
+            height: 55px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
-            height: 60px;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
         }
 
-        .logo-area {
+        .navbar-brand {
             display: flex;
             align-items: center;
             gap: 10px;
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 16px;
         }
 
-        .live-indicator {
+        .navbar-brand span {
+            color: var(--accent-green);
+            font-size: 12px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.85rem;
-            color: var(--accent-green);
+            gap: 5px;
         }
 
-        .live-dot {
+        .navbar-brand span::before {
+            content: '';
+            display: inline-block;
             width: 8px;
             height: 8px;
             background-color: var(--accent-green);
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 8px var(--accent-green);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 164, 79, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(46, 164, 79, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 164, 79, 0); }
-        }
-
-        .nav-links {
+        .navbar-menu {
             display: flex;
-            gap: 20px;
+            gap: 10px;
         }
 
-        .nav-item {
+        .navbar-item {
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+            font-size: 14px;
+            padding: 6px 14px;
             border-radius: 6px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
         }
 
-        .nav-item.active, .nav-item:hover {
+        .navbar-item.active {
             color: var(--text-main);
             background-color: var(--bg-card);
         }
 
-        /* Main Workspace */
-        .workspace {
+        .app-container {
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
+            height: calc(100vh - 55px);
         }
 
-        /* Sidebar Left: Search & Filter Lists */
-        .sidebar-left {
+        /* Vistas generales */
+        .view-section {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .view-section.active-view {
+            display: flex;
+        }
+
+        .sidebar {
             width: 320px;
             background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+            z-index: 10;
+            height: 100%;
+        }
+
+        .sidebar-right {
+            width: 340px;
+            border-right: none;
+            border-left: 1px solid var(--border-color);
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .search-box {
-            width: 100%;
-            padding: 10px;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-main);
-            margin-bottom: 15px;
-            font-size: 0.9rem;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .filter-tags {
+        .search-input {
+            width: 100%;
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .filter-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .filter-tag {
+        .filter-pill {
             background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
             cursor: pointer;
-            text-align: left;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .filter-pill.active {
+            background-color: var(--bg-card-active);
             color: var(--text-main);
+            border-color: var(--text-muted);
         }
 
-        .filter-tag.active {
-            border-color: #58a6ff;
-            background-color: rgba(56, 139, 253, 0.1);
+        .filter-pill.pill-todos.active { border-left: 3px solid var(--text-main); }
+        .filter-pill.pill-ave.active { border-left: 3px solid var(--accent-ave); }
+        .filter-pill.pill-avlo.active { border-left: 3px solid var(--accent-avlo); }
+        .filter-pill.pill-alvia.active { border-left: 3px solid var(--accent-alvia); }
+        .filter-pill.pill-md.active { border-left: 3px solid var(--accent-md); }
+        .filter-pill.pill-cercanias.active { border-left: 3px solid var(--accent-cercanias); }
+
+        .pill-count {
+            background-color: var(--bg-main);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
         }
 
-        .train-list {
+        .train-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .train-card {
             background-color: var(--bg-card);
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            transition: background-color 0.2s;
         }
 
-        .train-card:hover, .train-card.selected {
-            border-color: #58a6ff;
+        .train-card:hover {
+            background-color: rgba(24, 34, 50, 0.8);
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
+        .train-card.active {
+            background-color: var(--bg-card-active);
+            border-color: var(--text-muted);
         }
 
-        .badge {
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #fff;
-        }
-
-        .badge.ave { background-color: var(--accent-ave); }
-        .badge.avlo { background-color: var(--accent-avlo); }
-        .badge.alvia { background-color: var(--accent-alvia); }
-        .badge.md { background-color: var(--accent-md); }
-        .badge.cercanias { background-color: var(--accent-cercanias); }
-
-        .status-dot {
-            font-size: 0.8rem;
-            color: var(--accent-green);
-        }
-
-        .train-name {
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-
-        .train-route {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin: 4px 0;
-        }
-
-        .train-eta {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        /* Map Container Centered */
-        #map {
-            flex: 1;
-            background-color: #0b0e14;
-        }
-
-        /* Dark mode filter for Leaflet Map Tiles */
-        .leaflet-layer,
-        .leaflet-control-zoom-in,
-        .leaflet-control-zoom-out {
-            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-        }
-
-        /* Sidebar Right: Active Train Detail Panel */
-        .sidebar-right {
-            width: 360px;
-            background-color: var(--bg-sidebar);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            overflow-y: auto;
-        }
-
-        .detail-header {
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
-            margin-bottom: 15px;
-        }
-
-        .detail-title {
+        .train-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
-        }
-
-        .info-label {
-            color: var(--text-muted);
-            margin-bottom: 2px;
-        }
-
-        .info-value {
+        .badge {
+            font-size: 11px;
             font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
         }
 
-        /* Timeline / Itinerary Styling */
-        .timeline {
-            position: relative;
-            padding-left: 24px;
-            margin-top: 10px;
+        .badge-ave { background-color: var(--accent-ave); }
+        .badge-avlo { background-color: var(--accent-avlo); color: #000; }
+        .badge-alvia { background-color: var(--accent-alvia); }
+        .badge-md { background-color: var(--accent-md); }
+        .badge-cercanias { background-color: var(--accent-cercanias); }
+
+        .train-id { font-size: 13px; font-weight: 600; margin-left: 6px; }
+        .train-status { font-size: 11px; color: var(--accent-green); }
+        .train-route { font-size: 13px; margin-bottom: 6px; }
+        .train-eta { font-size: 11px; color: var(--text-muted); }
+
+        .map-wrapper { flex: 1; height: 100%; position: relative; }
+        #map { width: 100%; height: 100%; background-color: var(--bg-main); }
+
+        /* Capa oscura para Leaflet */
+        .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-container {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
         }
 
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 5px;
-            bottom: 5px;
-            width: 2px;
-            background-color: var(--border);
-        }
+        .detail-header { padding: 15px; border-bottom: 1px solid var(--border-color); background-color: var(--bg-card); }
+        .detail-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+        .detail-route-title { font-size: 14px; font-weight: bold; margin-top: 5px; }
 
-        .timeline-item {
-            position: relative;
-            margin-bottom: 20px;
-        }
+        .metrics-grid { padding: 15px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--border-color); }
+        .metric-row { display: flex; justify-content: space-between; font-size: 13px; }
+        .metric-label { color: var(--text-muted); }
+        .metric-delay-tag { background-color: rgba(60, 208, 112, 0.15); color: var(--accent-green); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 
-        .timeline-marker {
-            position: absolute;
-            left: -22px;
-            top: 4px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: var(--bg-sidebar);
-            border: 2px solid var(--text-muted);
-        }
+        .timeline-container { flex: 1; overflow-y: auto; padding: 20px; }
+        .timeline-item { position: relative; padding-left: 24px; padding-bottom: 24px; }
+        .timeline-item::before { content: ''; position: absolute; left: 5px; top: 16px; bottom: 0; width: 2px; background-color: var(--border-color); }
+        .timeline-item:last-child::before { display: none; }
+        .timeline-node { position: absolute; left: 0; top: 4px; width: 12px; height: 12px; border-radius: 50%; background-color: var(--bg-sidebar); border: 2px solid var(--border-color); }
 
-        .timeline-item.passed .timeline-marker {
-            background-color: var(--accent-green);
-            border-color: var(--accent-green);
-        }
+        .timeline-item.passed .timeline-node { background-color: var(--accent-green); border-color: var(--accent-green); }
+        .timeline-item.passed::before { background-color: var(--accent-green); }
+        .timeline-item.current .timeline-node { background-color: var(--bg-main); border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.4); }
+        .timeline-station-name { font-size: 13px; font-weight: 600; }
+        .timeline-time { font-size: 11px; color: var(--text-muted); }
+        .no-selection-msg { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
-        .timeline-item.current .timeline-marker {
-            background-color: #58a6ff;
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.3);
+        /* Estilos de las pestañas independientes */
+        .full-list-view, .incidents-view {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: var(--bg-main);
+            height: 100%;
         }
-
-        .timeline-content {
-            font-size: 0.85rem;
-        }
-
-        .station-name {
-            font-weight: bold;
-            margin-bottom: 2px;
-        }
-
-        .station-time {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-        }
-
-        /* Map Legend Overlay */
-        .map-legend {
-            position: absolute;
-            bottom: 20px;
-            left: 340px;
-            background-color: rgba(22, 27, 34, 0.9);
-            border: 1px solid var(--border);
-            padding: 10px 15px;
-            border-radius: 6px;
-            z-index: 1000;
-            display: flex;
-            gap: 15px;
-            font-size: 0.75rem;
-            pointer-events: none;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .legend-color {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
+        .section-title { font-size: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        
+        .incidents-grid { display: flex; flex-direction: column; gap: 12px; max-width: 800px; }
+        .incident-card { background-color: var(--bg-sidebar); border-left: 4px solid var(--accent-red); padding: 15px; border-radius: 4px; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+        .incident-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; color: #fca5a5; }
+        .incident-desc { font-size: 13px; color: var(--text-muted); }
     </style>
 </head>
 <body>
 
-    <!-- Top Navbar -->
-    <header>
-        <div class="logo-area">
-            <span>🚇 Trenes España</span>
-            <div class="live-indicator">
-                <div class="live-dot"></div>
-                <span>En directo</span>
-            </div>
-        </div>
-        <nav class="nav-links">
-            <a href="#" class="nav-item active">🗺️ Mapa</a>
-            <a href="#" class="nav-item">🚄 Trenes</a>
-            <a href="#" class="nav-item">⚠️ Incidencias</a>
-            <a href="#" class="nav-item">📊 Estadísticas</a>
+    <header class="navbar">
+        <div class="navbar-brand">Trenes España en Tiempo Real <span>En directo</span></div>
+        <nav class="navbar-menu">
+            <button class="navbar-item active" onclick="switchView('map-view', this)">Mapa</button>
+            <button class="navbar-item" onclick="switchView('trains-view', this)">Trenes</button>
+            <button class="navbar-item" onclick="switchView('incidents-view', this)">Incidencias</button>
         </nav>
     </header>
 
-    <!-- Content Workspace -->
-    <div class="workspace">
-        
-        <!-- Sidebar Left -->
-        <aside class="sidebar-left">
-            <input type="text" id="searchBar" class="search-box" placeholder="Buscar tren, origen o destino...">
-            
-            <div class="filter-tags">
-                <button class="filter-tag active" data-type="all">Todos <span id="count-all">0</span></button>
-                <button class="filter-tag" data-type="ave">AVE <span id="count-ave">0</span></button>
-                <button class="filter-tag" data-type="avlo">AVLO <span id="count-avlo">0</span></button>
-                <button class="filter-tag" data-type="alvia">ALVIA <span id="count-alvia">0</span></button>
-                <button class="filter-tag" data-type="md">Media Dist. <span id="count-md">0</span></button>
-                <button class="filter-tag" data-type="cercanias">Cercanías <span id="count-cercanias">0</span></button>
+    <main class="app-container">
+        <!-- VISTA DE MAPA -->
+        <div id="map-view" class="view-section active-view">
+            <section class="sidebar">
+                <div class="search-box">
+                    <input type="text" id="trainSearch" class="search-input" placeholder="Buscar tren, origen o destino...">
+                </div>
+                <div class="filter-grid">
+                    <button class="filter-pill pill-todos active" data-filter="all">Todos <span class="pill-count" id="count-all">0</span></button>
+                    <button class="filter-pill pill-ave" data-filter="ave">AVE <span class="pill-count" id="count-ave">0</span></button>
+                    <button class="filter-pill pill-avlo" data-filter="avlo">AVLO <span class="pill-count" id="count-avlo">0</span></button>
+                    <button class="filter-pill pill-alvia" data-filter="alvia">ALVIA <span class="pill-count" id="count-alvia">0</span></button>
+                    <button class="filter-pill pill-md" data-filter="md">M.D. <span class="pill-count" id="count-md">0</span></button>
+                    <button class="filter-pill pill-cercanias" data-filter="cercanias">Cercanías <span class="pill-count" id="count-cercanias">0</span></button>
+                </div>
+                <div class="train-list-container" id="trainList"></div>
+            </section>
+
+            <section class="map-wrapper"><div id="map"></div></section>
+
+            <section class="sidebar sidebar-right" id="rightSidebar">
+                <div class="no-selection-msg" id="emptySidebarMsg">Selecciona un tren para ver sus detalles.</div>
+                <div style="display: none;" id="sidebarContent">
+                    <div class="detail-header">
+                        <div class="detail-title-row"><span class="badge" id="detailBadge">AVE</span><span class="train-id" id="detailId">00000</span></div>
+                        <div class="detail-route-title" id="detailRoute">-</div>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-row"><span class="metric-label">Ubicación actual</span><span class="metric-value" id="metricLocation">-</span></div>
+                        <div class="metric-row"><span class="metric-label">Velocidad</span><span class="metric-value" id="metricSpeed">-</span></div>
+                        <div class="metric-row"><span class="metric-label">Llegada prevista</span><span class="metric-value" id="metricEta">-</span></div>
+                    </div>
+                    <div class="timeline-container" id="timelineContainer"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- VISTA DE LISTA COMPLETA -->
+        <div id="trains-view" class="view-section full-list-view">
+            <div style="width:100%">
+                <h2 class="section-title">Todos los trenes en circulación</h2>
+                <div id="fullTrainsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;"></div>
             </div>
+        </div>
 
-            <div class="train-list" id="trainListContainer">
-                <!-- Cards injected via JS -->
+        <!-- VISTA DE INCIDENCIAS -->
+        <div id="incidents-view" class="view-section incidents-view">
+            <div style="width:100%">
+                <h2 class="section-title">Incidencias de la Red Ferroviaria</h2>
+                <div class="incidents-grid">
+                    <div class="incident-card">
+                        <div class="incident-title">Retraso por avería técnica - Línea AVE Madrid-Barcelona</div>
+                        <div class="incident-desc">Afectados trenes con paso regulado cerca de Calatayud. Demoras estimadas entre 15 y 25 minutos. Técnicos trabajando en zona.</div>
+                    </div>
+                    <div class="incident-card">
+                        <div class="incident-title">Condiciones meteorológicas - Red Cercanías Asturias</div>
+                        <div class="incident-desc">Ralentización de la marcha entre Oviedo y Gijón por fuerte temporal de lluvia y desprendimientos menores en el margen de la vía.</div>
+                    </div>
+                    <div class="incident-card">
+                        <div class="incident-title">Obras de mejora - Corredor Mediterráneo</div>
+                        <div class="incident-desc">Modificación de horarios y desvíos puntuales en servicios de Media Distancia entre Castellón y Tarragona debido a la adecuación de infraestructura.</div>
+                    </div>
+                </div>
             </div>
-        </aside>
+        </div>
+    </main>
 
-        <!-- Centered Map Container -->
-        <main style="position: relative; flex: 1; display: flex;">
-            <div id="map"></div>
-            
-            <!-- Map Legend Layout Overlay -->
-            <div class="map-legend">
-                <div class="legend-item"><div class="legend-color" style="background-color: var(--accent-ave);"></div>AVE</div>
-                <div class="legend-item"><div class="legend-color" style="background-color: var(--accent-avlo);"></div>AVLO</div>
-                <div class="legend-item"><div class="legend-color" style="background-color: var(--accent-alvia);"></div>Alvia</div>
-                <div class="legend-item"><div class="legend-color" style="background-color: var(--accent-md);"></div>M.D.</div>
-                <div class="legend-item"><div class="legend-color" style="background-color: var(--accent-cercanias);"></div>Cercanías</div>
-            </div>
-        </main>
-
-        <!-- Sidebar Right -->
-        <aside class="sidebar-right" id="detailPanel">
-            <!-- Details injected dynamically via JS -->
-        </aside>
-
-    </div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- DATASET INTEGRADO (Mock realístico que simula feeds dinámicos) ---
         const trainsData = [
-            {
-                id: "AVE03121",
-                type: "ave",
-                name: "AVE 03121",
-                route: "Madrid P. Atocha → Barcelona Sants",
-                eta: "15:42",
-                status: "En marcha",
-                speed: 298,
-                progress: "332 km / 621 km (53%)",
-                delay: "-2 min",
-                locationName: "Cerca de Guadalajara",
-                coords: [40.4500, -3.1500],
-                itinerary: [
-                    { station: "Madrid P. Atocha", time: "Salida: 13:00", state: "passed" },
-                    { station: "Guadalajara", time: "Paso: 13:29", state: "current" },
-                    { station: "Zaragoza Delicias", time: "Prevista: 14:48", state: "upcoming" },
-                    { station: "Barcelona Sants", time: "Prevista: 15:42", state: "upcoming" }
-                ]
-            },
-            {
-                id: "AVE03092",
-                type: "ave",
-                name: "AVE 03092",
-                route: "Barcelona Sants → Sevilla S. Justa",
-                eta: "16:58",
-                status: "En marcha",
-                speed: 284,
-                progress: "410 km / 1024 km (40%)",
-                delay: "+5 min",
-                locationName: "Pasando Zaragoza",
-                coords: [41.6488, -0.8891],
-                itinerary: [
-                    { station: "Barcelona Sants", time: "Salida: 12:45", state: "passed" },
-                    { station: "Zaragoza Delicias", time: "Paso: 14:20", state: "current" },
-                    { station: "Madrid P. Atocha", time: "Prevista: 15:55", state: "upcoming" },
-                    { station: "Sevilla S. Justa", time: "Prevista: 16:58", state: "upcoming" }
-                ]
-            },
-            {
-                id: "AVLO00613",
-                type: "avlo",
-                name: "AVLO 00613",
-                route: "Madrid P. Atocha → Valencia J. Sorolla",
-                eta: "14:49",
-                status: "En marcha",
-                speed: 295,
-                progress: "180 km / 390 km (46%)",
-                delay: "0 min",
-                locationName: "Provincia de Cuenca",
-                coords: [40.0700, -2.1300],
-                itinerary: [
-                    { station: "Madrid P. Atocha", time: "Salida: 13:30", state: "passed" },
-                    { station: "Cuenca Fernando Zóbel", time: "Paso: 14:12", state: "current" },
-                    { station: "Valencia J. Sorolla", time: "Prevista: 14:49", state: "upcoming" }
-                ]
-            },
-            {
-                id: "ALVIA04171",
-                type: "alvia",
-                name: "ALVIA 04171",
-                route: "A Coruña → Madrid Chamartín",
-                eta: "15:26",
-                status: "En marcha",
-                speed: 210,
-                progress: "420 km / 605 km (69%)",
-                delay: "0 min",
-                locationName: "Cerca de Valladolid",
-                coords: [41.6522, -4.7245],
-                itinerary: [
-                    { station: "A Coruña", time: "Salida: 10:15", state: "passed" },
-                    { station: "Ourense", time: "Paso: 11:30", state: "passed" },
-                    { station: "Zamora", time: "Paso: 13:45", state: "current" },
-                    { station: "Madrid Chamartín", time: "Prevista: 15:26", state: "upcoming" }
-                ]
-            },
-            {
-                id: "MD18205",
-                type: "md",
-                name: "MD 18205",
-                route: "Zaragoza Delicias → Huesca",
-                eta: "14:38",
-                status: "En marcha",
-                speed: 120,
-                progress: "45 km / 82 km (54%)",
-                delay: "+1 min",
-                locationName: "Próximo a Tardienta",
-                coords: [41.9768, -0.5367],
-                itinerary: [
-                    { station: "Zaragoza Delicias", time: "Salida: 13:40", state: "passed" },
-                    { station: "Tardienta", time: "Paso: 14:15", state: "current" },
-                    { station: "Huesca", time: "Prevista: 14:38", state: "upcoming" }
-                ]
-            },
-            {
-                id: "C1BARC",
-                type: "cercanias",
-                name: "C1 Barcelona",
-                route: "L'Hospitalet → Mataró",
-                eta: "Próxima: Badalona (14:21)",
-                status: "En marcha",
-                speed: 75,
-                progress: "Frecuencia regular",
-                delay: "0 min",
-                locationName: "Tramo Urbano",
-                coords: [41.4500, 2.2474],
-                itinerary: [
-                    { station: "L'Hospitalet", time: "Salida: 13:55", state: "passed" },
-                    { station: "Barcelona Sants", time: "Paso: 14:05", state: "passed" },
-                    { station: "Badalona", time: "Llegada: 14:21", state: "current" },
-                    { station: "Mataró", time: "Prevista: 14:45", state: "upcoming" }
-                ]
-            }
+            { id: '03121', type: 'ave', label: 'AVE', origin: 'Madrid P. Atocha', destination: 'Barcelona Sants', eta: '15:42', delay: '-2 min', speed: '298 km/h', currentLocationName: 'Cerca de Guadalajara', coordinates: [40.63, -3.16], timeline: [{ station: 'Madrid P. Atocha', time: '13:00', state: 'passed' }, { station: 'Guadalajara', time: '13:29', state: 'current' }, { station: 'Barcelona Sants', time: '15:42', state: 'future' }] },
+            { id: '03092', type: 'ave', label: 'AVE', origin: 'Barcelona Sants', destination: 'Sevilla S. Justa', eta: '16:58', delay: '0 min', speed: '250 km/h', currentLocationName: 'Próximo a Zaragoza', coordinates: [41.65, -0.88], timeline: [{ station: 'Barcelona Sants', time: '14:10', state: 'passed' }, { station: 'Zaragoza', time: '15:02', state: 'current' }, { station: 'Sevilla Justa', time: '16:58', state: 'future' }] },
+            { id: '00613', type: 'avlo', label: 'AVLO', origin: 'Madrid P. Atocha', destination: 'Valencia J. Sorolla', eta: '14:49', delay: '+5 min', speed: '280 km/h', currentLocationName: 'Tramo Cuenca', coordinates: [40.07, -2.13], timeline: [{ station: 'Madrid Atocha', time: '13:15', state: 'passed' }, { station: 'Valencia Sorolla', time: '14:49', state: 'current' }] },
+            { id: '04171', type: 'alvia', label: 'ALVIA', origin: 'A Coruña', destination: 'Madrid Chamartín', eta: '15:26', delay: '0 min', speed: '210 km/h', currentLocationName: 'Cerca de Valladolid', coordinates: [41.65, -4.72], timeline: [{ station: 'A Coruña', time: '11:20', state: 'passed' }, { station: 'Madrid Chamartín', time: '15:26', state: 'current' }] }
         ];
 
-        // --- MAP INITIALIZATION ---
-        const map = L.map('map', { zoomControl: false }).setView([40.4167, -3.7037], 6); // Centro de España
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup;
+        const typeColors = { ave: 'var(--accent-ave)', avlo: 'var(--accent-avlo)', alvia: 'var(--accent-alvia)', md: 'var(--accent-md)', cercanias: 'var(--accent-cercanias)' };
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        document.addEventListener('DOMContentLoaded', () => {
+            map = L.map('map', { zoomControl: true, attributionControl: false }).setView([40.41, -3.70], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            markersGroup = L.layerGroup().addTo(map);
 
-        // --- GLOBAL VARIABLES ---
-        let currentFilter = 'all';
-        let searchQuery = '';
-        let markersGroup = L.layerGroup().addTo(map);
-        let selectedTrainId = trainsData[0].id; // Seleccionar el primero por defecto
+            updateCounters();
+            render(); 
+            setupEvents();
+            renderFullGrid();
+        });
 
-        // Color mapper for markers
-        const typeColors = {
-            ave: '#b620e0',
-            avlo: '#9e005d',
-            alvia: '#0070f3',
-            md: '#e056fd',
-            cercanias: '#00a8ff'
-        };
+        function switchView(viewId, clickedButton) {
+            document.querySelectorAll('.navbar-item').forEach(btn => btn.classList.remove('active'));
+            if(clickedButton) clickedButton.classList.add('active');
 
-        // --- RENDER ENGINE ---
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
+            document.getElementById(viewId).classList.add('active-view');
+
+            if(viewId === 'map-view' && map) {
+                setTimeout(() => { map.invalidateSize(); }, 50);
+            }
+        }
 
         function updateCounters() {
-            document.getElementById('count-all').innerText = trainsData.length;
-            ['ave', 'avlo', 'alvia', 'md', 'cercanias'].forEach(type => {
-                const count = trainsData.filter(t => t.type === type).length;
-                document.getElementById(`count-${type}`).innerText = count;
+            const counts = { all: trainsData.length, ave: 0, avlo: 0, alvia: 0, md: 0, cercanias: 0 };
+            trainsData.forEach(t => { if(counts[t.type] !== undefined) counts[t.type]++; });
+            Object.keys(counts).forEach(k => {
+                const el = document.getElementById(`count-${k}`);
+                if(el) el.innerText = counts[k];
             });
         }
 
-        function renderTrainList() {
-            const container = document.getElementById('trainListContainer');
-            container.innerHTML = '';
-
-            const filtered = trainsData.filter(train => {
-                const matchesFilter = currentFilter === 'all' || train.type === currentFilter;
-                const matchesSearch = train.name.toLowerCase().includes(searchQuery) || 
-                                      train.route.toLowerCase().includes(searchQuery);
-                return matchesFilter && matchesSearch;
-            });
-
-            filtered.forEach(train => {
-                const card = document.createElement('div');
-                card.className = `train-card ${train.id === selectedTrainId ? 'selected' : ''}`;
-                card.onclick = () => selectTrain(train.id);
-
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="badge ${train.type}">${train.type.toUpperCase()}</span>
-                        <span class="status-dot">● ${train.status}</span>
-                    </div>
-                    <div class="train-name">${train.name}</div>
-                    <div class="train-route">${train.route}</div>
-                    <div class="train-eta">Llegada prevista: ${train.eta}</div>
-                `;
-                container.appendChild(card);
+        function getFiltered() {
+            return trainsData.filter(t => {
+                const fMatch = activeFilter === 'all' || t.type === activeFilter;
+                const q = searchQuery.toLowerCase();
+                const sMatch = !q || t.id.includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q);
+                return fMatch && sMatch;
             });
         }
 
-        function renderMarkers() {
+        function render() {
+            const list = document.getElementById('trainList');
+            if (!list) return;
+            list.innerHTML = '';
             markersGroup.clearLayers();
+            const filtered = getFiltered();
 
-            trainsData.forEach(train => {
-                // Verificar si pasa los filtros actuales para mostrarse en mapa
-                const matchesFilter = currentFilter === 'all' || train.type === currentFilter;
-                const matchesSearch = train.name.toLowerCase().includes(searchQuery) || 
-                                      train.route.toLowerCase().includes(searchQuery);
-                
-                if (matchesFilter && matchesSearch) {
-                    const color = typeColors[train.type] || '#fff';
-                    
-                    // Icono de circulo personalizado estilo radar ferroviario
-                    const customIcon = L.divIcon({
-                        className: 'custom-train-marker',
-                        html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 8px ${color};"></div>`,
-                        iconSize: [14, 14],
-                        iconAnchor: [7, 7]
-                    });
+            filtered.forEach(t => {
+                const card = document.createElement('div');
+                card.className = `train-card ${selectedTrainId === t.id ? 'active' : ''}`;
+                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Previsto: ${t.eta} <span class="metric-delay-tag">${t.delay}</span></div>`;
+                card.addEventListener('click', () => select(t));
+                list.appendChild(card);
 
-                    const marker = L.marker(train.coords, { icon: customIcon })
-                        .bindPopup(`<b>${train.name}</b><br>${train.route}`)
-                        .addTo(markersGroup);
-
-                    marker.on('click', () => {
-                        selectTrain(train.id);
-                    });
-                }
+                const c = typeColors[t.type] || '#ffffff';
+                const marker = L.marker(t.coordinates, {
+                    icon: L.divIcon({ 
+                        className: 'custom-div-icon', 
+                        html: `<div style="background:${c};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${c};cursor:pointer;"></div>`
+                    })
+                });
+                marker.on('click', () => {
+                    const btnMapa = document.querySelector("button[onclick*='map-view']");
+                    switchView('map-view', btnMapa);
+                    select(t, false);
+                });
+                markersGroup.addLayer(marker);
             });
         }
 
-        function renderRightPanel() {
-            const panel = document.getElementById('detailPanel');
-            const train = trainsData.find(t => t.id === selectedTrainId);
+        function renderFullGrid() {
+            const grid = document.getElementById('fullTrainsGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            trainsData.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'train-card';
+                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route" style="font-weight:bold;margin:8px 0;">${t.origin} → ${t.destination}</div><div class="train-eta">Velocidad: ${t.speed}</div><div class="train-eta" style="margin-top:4px;">Ubicación: ${t.currentLocationName}</div>`;
+                card.addEventListener('click', () => {
+                    const btnMapa = document.querySelector("button[onclick*='map-view']");
+                    switchView('map-view', btnMapa);
+                    select(t, true);
+                });
+                grid.appendChild(card);
+            });
+        }
 
-            if (!train) {
-                panel.innerHTML = '<div style="color: var(--text-muted); text-align: center; margin-top: 40px;">Selecciona un tren del mapa o de la lista para ver su recorrido detallado.</div>';
-                return;
+        function select(t, fly = true) {
+            selectedTrainId = t.id;
+            
+            document.querySelectorAll('.train-card').forEach(c => c.classList.remove('active'));
+            render();
+
+            if(fly && map) map.flyTo(t.coordinates, 8);
+
+            document.getElementById('emptySidebarMsg').style.display = 'none';
+            document.getElementById('sidebarContent').style.display = 'block';
+            document.getElementById('detailBadge').className = `badge badge-${t.type}`;
+            document.getElementById('detailBadge').innerText = t.label;
+            document.getElementById('detailId').innerText = t.id;
+            document.getElementById('detailRoute').innerText = `${t.origin} → ${t.destination}`;
+            document.getElementById('metricLocation').innerText = t.currentLocationName;
+            document.getElementById('metricSpeed').innerText = t.speed;
+            document.getElementById('metricEta').innerText = `${t.eta} (${t.delay})`;
+
+            const tc = document.getElementById('timelineContainer');
+            tc.innerHTML = '';
+            t.timeline.forEach(n => {
+                const i = document.createElement('div');
+                i.className = `timeline-item ${n.state}`;
+                i.innerHTML = `<div class="timeline-node"></div><div class="timeline-station-name">${n.station}</div><div class="timeline-time">${n.time}</div>`;
+                tc.appendChild(i);
+            });
+        }
+
+        function setupEvents() {
+            const searchInput = document.getElementById('trainSearch');
+            if(searchInput) {
+                searchInput.addEventListener('input', (e) => { searchQuery = e.target.value; render(); });
             }
-
-            const delayClass = train.delay.includes('+') ? 'color: #ff4d4d;' : train.delay.includes('-') ? 'color: var(--accent-green);' : '';
-
-            let itineraryHTML = '';
-            train.itinerary.forEach(item => {
-                itineraryHTML += `
-                    <div class="timeline-item ${item.state}">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <div class="station-name">${item.station}</div>
-                            <div class="station-time">${item.time}</div>
-                        </div>
-                    </div>
-                `;
+            
+            document.querySelectorAll('.filter-pill').forEach(p => {
+                p.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                    p.classList.add('active');
+                    activeFilter = p.getAttribute('data-filter');
+                    render();
+                });
             });
-
-            panel.innerHTML = `
-                <div class="detail-header">
-                    <div class="detail-title">
-                        <h2>${train.name}</h2>
-                        <span class="badge ${train.type}">${train.type.toUpperCase()}</span>
-                    </div>
-                    <p style="color: var(--accent-green); font-size: 0.85rem;">● En marcha</p>
-                    <p style="font-size: 0.9rem; margin-top: 8px; font-weight: 500;">${train.route}</p>
-                </div>
-
-                <div class="info-grid">
-                    <div>
-                        <div class="info-label">📍 Ubicación actual</div>
-                        <div class="info-value">${train.locationName}</div>
-                    </div>
-                    <div>
-                        <div class="info-label">⚡ Velocidad</div>
-                        <div class="info-value">${train.speed} km/h</div>
-                    </div>
-                    <div>
-                        <div class="info-label">🕒 Llegada prevista</div>
-                        <div class="info-value">${train.eta} <span style="${delayClass}">${train.delay}</span></div>
-                    </div>
-                    <div>
-                        <div class="info-label">📈 Recorrido</div>
-                        <div class="info-value" style="font-size: 0.75rem;">${train.progress}</div>
-                    </div>
-                </div>
-
-                <h3 style="font-size: 1rem; margin-bottom: 15px; border-top: 1px solid var(--border); padding-top: 15px;">📋 Itinerario del Viaje</h3>
-                <div class="timeline">
-                    ${itineraryHTML}
-                </div>
-            `;
         }
-
-        function selectTrain(id) {
-            selectedTrainId = id;
-            renderTrainList();
-            renderRightPanel();
-
-            const train = trainsData.find(t => t.id === id);
-            if (train) {
-                map.flyTo(train.coords, 8, { animate: true, duration: 1.5 });
-            }
-        }
-
-        // --- INTERACTION LOGIC (EVENT LISTENERS) ---
-
-        // Search Input
-        document.getElementById('searchBar').addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase();
-            renderTrainList();
-            renderMarkers();
-        });
-
-        // Category Filter Buttons
-        document.querySelectorAll('.filter-tag').forEach(button => {
-            button.addEventListener('click', (e) => {
-                document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
-                
-                const btn = e.currentTarget;
-                btn.classList.add('active');
-                currentFilter = btn.getAttribute('data-type');
-                
-                renderTrainList();
-                renderMarkers();
-            });
-        });
-
-        // --- INITIAL RUN ---
-        updateCounters();
-        renderTrainList();
-        renderMarkers();
-        renderRightPanel();
-
-        // Auto pan to first train on launch
-        if(trainsData.length > 0) {
-            map.setView(trainsData[0].coords, 7);
-        }
-
     </script>
 </body>
 </html>
