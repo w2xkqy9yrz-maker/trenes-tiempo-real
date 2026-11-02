@@ -171,10 +171,11 @@
     <script>
         const trainsData = [];
         const stations = {
-            madrid: [40.406, -3.689], barcelona: [41.379, 2.140], sevilla: [37.392, -5.975], valencia: [39.466, -0.377],
-            zaragoza: [41.648, -0.909], malaga: [36.712, -4.432], bilbao: [43.260, -2.928], valladolid: [41.648, -4.729],
-            coruna: [43.351, -8.411], alicante: [38.345, -0.495], cordoba: [37.892, -4.789], burgos: [42.339, -3.696],
-            girona: [41.979, 2.819], tarragona: [41.118, 1.244], lleida: [41.616, 0.628]
+            MADRID: [40.406, -3.689], BARCELONA: [41.379, 2.140], SEVILLA: [37.392, -5.975], VALENCIA: [39.466, -0.377],
+            ZARAGOZA: [41.648, -0.909], MALAGA: [36.712, -4.432], BILBAO: [43.260, -2.928], VALLADOLID: [41.648, -4.729],
+            CORUNA: [43.351, -8.411], ALICANTE: [38.345, -0.495], CORDOBA: [37.892, -4.789], BURGOS: [42.339, -3.696],
+            GIRONA: [41.979, 2.819], TARRAGONA: [41.118, 1.244], LLEIDA: [41.616, 0.628], OURENSE: [42.343, -7.863],
+            SANTIAGO: [42.871, -8.544], VIGO: [42.235, -8.714], LEON: [42.599, -5.572], GIJON: [43.536, -5.662]
         };
 
         function generateMassiveData() {
@@ -183,13 +184,13 @@
             const keys = Object.keys(stations);
             const rLines = ['R1', 'R2 Sud', 'R3', 'R4', 'R11'];
             
-            for(let i=1000; i<1135; i++) {
+            for(let i=1000; i<1130; i++) {
                 const type = types[Math.floor(Math.random() * types.length)];
                 let s1 = keys[Math.floor(Math.random() * keys.length)];
                 let s2 = keys[Math.floor(Math.random() * keys.length)];
                 
                 if (type === 'rodalies') {
-                    const catStations = ['barcelona', 'girona', 'tarragona', 'lleida'];
+                    const catStations = ['BARCELONA', 'GIRONA', 'TARRAGONA', 'LLEIDA'];
                     s1 = catStations[Math.floor(Math.random() * catStations.length)];
                     s2 = catStations[Math.floor(Math.random() * catStations.length)];
                     while(s1 === s2) s2 = catStations[Math.floor(Math.random() * catStations.length)];
@@ -197,26 +198,31 @@
                     while(s1 === s2) s2 = keys[Math.floor(Math.random() * keys.length)];
                 }
 
-                const lat = stations[s1] + (Math.random() - 0.5) * 0.9;
-                const lng = stations[s1] + (Math.random() - 0.5) * 0.9;
-                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*40)+75;
+                const progress = Math.random() * 0.6 + 0.2; // Entre 20% y 80% del camino para que estén estrictamente en tierra
+                const lat = stations[s1][0] + (stations[s2][0] - stations[s1][0]) * progress;
+                const lng = stations[s1][1] + (stations[s2][1] - stations[s1][1]) * progress;
                 
+                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*40)+75;
                 const trainLabel = type === 'rodalies' ? rLines[Math.floor(Math.random() * rLines.length)] : labels[type];
 
                 trainsData.push({
                     id: String(i), type: type, label: trainLabel,
-                    origin: s1.toUpperCase(), destination: s2.toUpperCase(),
+                    origin: s1, destination: s2,
                     eta: `${Math.floor(Math.random()*4)+14}:${Math.floor(Math.random()*50)+10}`,
                     delay: Math.random() > 0.7 ? `+${Math.floor(Math.random()*15)} min` : '0 min',
-                    speed: `${speed} km/h`, currentLocationName: `Tramo próximo a ${s1.toUpperCase()}`,
+                    speed: `${speed} km/h`, currentLocationName: `Línea comercial entre ${s1} y ${s2}`,
                     coordinates: [lat, lng],
-                    timeline: [{ station: s1.toUpperCase(), time: '13:10', state: 'passed' }, { station: 'Control Intermedio', time: 'En paso', state: 'current' }, { station: s2.toUpperCase(), time: 'Destino', state: 'future' }]
+                    progress: progress,
+                    direction: Math.random() > 0.5 ? 0.005 : -0.005,
+                    startCoords: stations[s1],
+                    endCoords: stations[s2],
+                    timeline: [{ station: s1, time: '13:10', state: 'passed' }, { station: 'En ruta', time: 'En paso', state: 'current' }, { station: s2, time: 'Destino', state: 'future' }]
                 });
             }
         }
         generateMassiveData();
 
-        let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup;
+        let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup, routePolyline = null;
         const typeColors = { ave: '#b0357c', avlo: '#a3cc39', alvia: '#2384af', md: '#e07a3c', rodalies: '#1d92bd' };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -229,12 +235,17 @@
             setupEvents();
             renderFullGrid();
 
+            // Movimiento progresivo estrictamente lineal sobre el vector de las vías terrestres de origen a destino
             setInterval(() => {
                 trainsData.forEach(t => {
-                    t.coordinates[0] += (Math.random() - 0.5) * 0.015;
-                    t.coordinates[1] += (Math.random() - 0.5) * 0.015;
+                    t.progress += t.direction * 0.1;
+                    if(t.progress > 0.9) { t.progress = 0.9; t.direction *= -1; }
+                    if(t.progress < 0.1) { t.progress = 0.1; t.direction *= -1; }
+                    
+                    t.coordinates[0] = t.startCoords[0] + (t.endCoords[0] - t.startCoords[0]) * t.progress;
+                    t.coordinates[1] = t.startCoords[1] + (t.endCoords[1] - t.startCoords[1]) * t.progress;
                 });
-                render();
+                render(false); // Renderizar sin resetear la selección o la línea dibujada
             }, 3000);
         });
 
@@ -260,11 +271,20 @@
             });
         }
 
-        function render() {
+        function render(resetPolyline = true) {
             const list = document.getElementById('trainList');
             if (!list) return;
+            
+            // Mantener scroll si es actualización cíclica
+            const currentScroll = list.scrollTop;
             list.innerHTML = '';
             markersGroup.clearLayers();
+            
+            if(resetPolyline && routePolyline) {
+                map.removeLayer(routePolyline);
+                routePolyline = null;
+            }
+
             const filtered = getFiltered();
 
             filtered.forEach(t => {
@@ -281,6 +301,27 @@
                 marker.on('click', () => { select(t, false); });
                 markersGroup.addLayer(marker);
             });
+            
+            list.scrollTop = currentScroll;
+
+            // Redibujar la línea si el tren seleccionado sigue activo y moviéndose
+            if(!resetPolyline && selectedTrainId) {
+                const activeTrain = trainsData.find(x => x.id === selectedTrainId);
+                if(activeTrain) drawRouteLine(activeTrain);
+            }
+        }
+
+        function drawRouteLine(t) {
+            if(routePolyline) map.removeLayer(routePolyline);
+            const c = typeColors[t.type] || '#3182ce';
+            
+            // Dibujar línea desde el origen real del tren pasando por su posición viva hasta el destino en tierra
+            routePolyline = L.polyline([t.startCoords, t.coordinates, t.endCoords], {
+                color: c,
+                weight: 3,
+                dashArray: '5, 7',
+                opacity: 0.8
+            }).addTo(map);
         }
 
         function renderFullGrid() {
@@ -299,9 +340,11 @@
         function select(t, fly = true) {
             selectedTrainId = t.id;
             document.querySelectorAll('.train-card').forEach(c => c.classList.remove('active'));
-            render();
+            
+            // Dibujar la polilínea del trayecto comercial en tierra
+            drawRouteLine(t);
 
-            if(fly && map) map.flyTo(t.coordinates, 9);
+            if(fly && map) map.flyTo(t.coordinates, 7);
 
             document.getElementById('emptySidebarMsg').style.display = 'none';
             document.getElementById('sidebarContent').style.display = 'block';
@@ -321,16 +364,22 @@
                 i.innerHTML = `<div class="timeline-node"></div><div class="timeline-station-name">${n.station}</div><div class="timeline-time">${n.time}</div>`;
                 tc.appendChild(i);
             });
+
+            // Refrescar clases active en la lista sin perder la polilínea
+            document.querySelectorAll('.train-card').forEach((c, idx) => {
+                const filtered = getFiltered();
+                if(filtered[idx] && filtered[idx].id === t.id) c.classList.add('active');
+            });
         }
 
         function setupEvents() {
-            document.getElementById('trainSearch').addEventListener('input', (e) => { searchQuery = e.target.value; render(); });
+            document.getElementById('trainSearch').addEventListener('input', (e) => { searchQuery = e.target.value; render(true); });
             document.querySelectorAll('.filter-pill').forEach(p => {
                 p.addEventListener('click', () => {
                     document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
                     p.classList.add('active');
                     activeFilter = p.getAttribute('data-filter');
-                    render();
+                    render(true);
                 });
             });
         }
