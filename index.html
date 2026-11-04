@@ -1,12 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trenes España en Tiempo Real</title>
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0c111a"><meta name="description" content="Mapa de trenes de España con posiciones publicadas por fuentes ferroviarias abiertas."><title>Trenes España | Posiciones actualizadas</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>
         :root {
             --bg-main: #0c111a;
             --bg-sidebar: #121824;
@@ -103,286 +95,44 @@
         .incident-card { background-color: var(--bg-sidebar); border-left: 4px solid var(--accent-red); padding: 15px; border-radius: 4px; border: 1px solid var(--border-color); border-left: 4px solid var(--accent-red); }
         .incident-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; color: #fca5a5; }
         .incident-desc { font-size: 13px; color: var(--text-muted); }
-    </style>
-</head>
-<body>
-
-    <header class="navbar">
-        <div class="navbar-brand">Trenes España en Tiempo Real <span>En directo</span></div>
-        <nav class="navbar-menu">
-            <button class="navbar-item active" onclick="switchView('map-view')">Mapa</button>
-            <button class="navbar-item" onclick="switchView('trains-view')">Trenes</button>
-            <button class="navbar-item" onclick="switchView('incidents-view')">Incidencias</button>
-        </nav>
-    </header>
-
-    <div class="app-container">
-        <div id="map-view" class="view-section active-view">
-            <section class="sidebar">
-                <div class="search-box">
-                    <input type="text" id="trainSearch" class="search-input" placeholder="Buscar tren, origen o destino...">
-                </div>
-                <div class="filter-grid">
-                    <button class="filter-pill pill-todos active" data-filter="all">Todos <span class="pill-count" id="count-all">0</span></button>
-                    <button class="filter-pill pill-ave" data-filter="ave">AVE <span class="pill-count" id="count-ave">0</span></button>
-                    <button class="filter-pill pill-avlo" data-filter="avlo">AVLO <span class="pill-count" id="count-avlo">0</span></button>
-                    <button class="filter-pill pill-alvia" data-filter="alvia">ALVIA <span class="pill-count" id="count-alvia">0</span></button>
-                    <button class="filter-pill pill-md" data-filter="md">M.D. <span class="pill-count" id="count-md">0</span></button>
-                    <button class="filter-pill pill-rodalies" data-filter="rodalies">Rodalies <span class="pill-count" id="count-rodalies">0</span></button>
-                </div>
-                <div class="train-list-container" id="trainList"></div>
-            </section>
-
-            <section class="map-wrapper"><div id="map"></div></section>
-
-            <section class="sidebar sidebar-right" id="rightSidebar">
-                <div class="no-selection-msg" id="emptySidebarMsg">Selecciona un tren para ver sus detalles.</div>
-                <div style="display: none;" id="sidebarContent">
-                    <div class="detail-header">
-                        <div class="detail-title-row"><span class="badge" id="detailBadge">AVE</span><span class="train-id" id="detailId">00000</span></div>
-                        <div class="detail-route-title" id="detailRoute">-</div>
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="metric-row"><span class="metric-label">Ubicación actual</span><span class="metric-value" id="metricLocation">-</span></div>
-                        <div class="metric-row"><span class="metric-label">Velocidad</span><span class="metric-value" id="metricSpeed">-</span></div>
-                        <div class="metric-row"><span class="metric-label">Llegada prevista</span><span class="metric-value" id="metricEta">-</span></div>
-                    </div>
-                    <div class="timeline-container" id="timelineContainer"></div>
-                </div>
-            </section>
-        </div>
-
-        <div id="trains-view" class="view-section full-list-view">
-            <h2 class="section-title">Todos los trenes en circulación</h2>
-            <div id="fullTrainsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px;"></div>
-        </div>
-
-        <div id="incidents-view" class="view-section incidents-view">
-            <h2 class="section-title">Incidencias de la Red Ferroviaria</h2>
-            <div class="incidents-grid">
-                <div class="incident-card"><div class="incident-title">Retraso por avería técnica - Línea AVE Madrid-Barcelona</div><div class="incident-desc">Afectados trenes con paso regulado cerca de Calatayud. Demoras estimadas entre 15 y 25 minutos.</div></div>
-                <div class="incident-card"><div class="incident-title">Condiciones meteorológicas - Red Rodalies Catalunya</div><div class="incident-desc">Ralentización de la marcha generalizada por fuerte temporal de lluvia en la línea R1 cerca de Mataró.</div></div>
-                <div class="incident-card"><div class="incident-title">Obras de mejora - Corredor Mediterráneo</div><div class="incident-desc">Modificación de horarios puntuales en servicios de Media Distancia entre Castellón y Tarragona.</div></div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const trainsData = [];
-        const stations = {
-            MADRID: [40.406, -3.689], BARCELONA: [41.379, 2.140], SEVILLA: [37.392, -5.975], VALENCIA: [39.466, -0.377],
-            ZARAGOZA: [41.648, -0.909], MALAGA: [36.712, -4.432], BILBAO: [43.260, -2.928], VALLADOLID: [41.648, -4.729],
-            CORUNA: [43.351, -8.411], ALICANTE: [38.345, -0.495], CORDOBA: [37.892, -4.789], BURGOS: [42.339, -3.696],
-            GIRONA: [41.979, 2.819], TARRAGONA: [41.118, 1.244], LLEIDA: [41.616, 0.628], OURENSE: [42.343, -7.863],
-            SANTIAGO: [42.871, -8.544], VIGO: [42.235, -8.714], LEON: [42.599, -5.572], GIJON: [43.536, -5.662]
-        };
-
-        function generateMassiveData() {
-            const types = ['ave', 'avlo', 'alvia', 'md', 'rodalies'];
-            const labels = { ave: 'AVE', avlo: 'AVLO', alvia: 'ALVIA', md: 'M.D.', rodalies: 'Rodalies' };
-            const keys = Object.keys(stations);
-            const rLines = ['R1', 'R2 Sud', 'R3', 'R4', 'R11'];
-            
-            for(let i=1000; i<1130; i++) {
-                const type = types[Math.floor(Math.random() * types.length)];
-                let s1 = keys[Math.floor(Math.random() * keys.length)];
-                let s2 = keys[Math.floor(Math.random() * keys.length)];
-                
-                if (type === 'rodalies') {
-                    const catStations = ['BARCELONA', 'GIRONA', 'TARRAGONA', 'LLEIDA'];
-                    s1 = catStations[Math.floor(Math.random() * catStations.length)];
-                    s2 = catStations[Math.floor(Math.random() * catStations.length)];
-                    while(s1 === s2) s2 = catStations[Math.floor(Math.random() * catStations.length)];
-                } else {
-                    while(s1 === s2) s2 = keys[Math.floor(Math.random() * keys.length)];
-                }
-
-                const progress = Math.random() * 0.6 + 0.2; // Entre 20% y 80% del camino para que estén estrictamente en tierra
-                const lat = stations[s1][0] + (stations[s2][0] - stations[s1][0]) * progress;
-                const lng = stations[s1][1] + (stations[s2][1] - stations[s1][1]) * progress;
-                
-                const speed = type === 'ave' || type === 'avlo' ? Math.floor(Math.random()*60)+250 : Math.floor(Math.random()*40)+75;
-                const trainLabel = type === 'rodalies' ? rLines[Math.floor(Math.random() * rLines.length)] : labels[type];
-
-                trainsData.push({
-                    id: String(i), type: type, label: trainLabel,
-                    origin: s1, destination: s2,
-                    eta: `${Math.floor(Math.random()*4)+14}:${Math.floor(Math.random()*50)+10}`,
-                    delay: Math.random() > 0.7 ? `+${Math.floor(Math.random()*15)} min` : '0 min',
-                    speed: `${speed} km/h`, currentLocationName: `Línea comercial entre ${s1} y ${s2}`,
-                    coordinates: [lat, lng],
-                    progress: progress,
-                    direction: Math.random() > 0.5 ? 0.005 : -0.005,
-                    startCoords: stations[s1],
-                    endCoords: stations[s2],
-                    timeline: [{ station: s1, time: '13:10', state: 'passed' }, { station: 'En ruta', time: 'En paso', state: 'current' }, { station: s2, time: 'Destino', state: 'future' }]
-                });
-            }
-        }
-        generateMassiveData();
-
-        let activeFilter = 'all', searchQuery = '', selectedTrainId = null, map, markersGroup, routePolyline = null;
-        const typeColors = { ave: '#b0357c', avlo: '#a3cc39', alvia: '#2384af', md: '#e07a3c', rodalies: '#1d92bd' };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            map = L.map('map', { zoomControl: true, attributionControl: false }).setView([40.41, -3.70], 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            markersGroup = L.layerGroup().addTo(map);
-
-            updateCounters();
-            render(); 
-            setupEvents();
-            renderFullGrid();
-
-            // Movimiento progresivo estrictamente lineal sobre el vector de las vías terrestres de origen a destino
-            setInterval(() => {
-                trainsData.forEach(t => {
-                    t.progress += t.direction * 0.1;
-                    if(t.progress > 0.9) { t.progress = 0.9; t.direction *= -1; }
-                    if(t.progress < 0.1) { t.progress = 0.1; t.direction *= -1; }
-                    
-                    t.coordinates[0] = t.startCoords[0] + (t.endCoords[0] - t.startCoords[0]) * t.progress;
-                    t.coordinates[1] = t.startCoords[1] + (t.endCoords[1] - t.startCoords[1]) * t.progress;
-                });
-                render(false); // Renderizar sin resetear la selección o la línea dibujada
-            }, 3000);
-        });
-
-        function switchView(viewId) {
-            document.querySelectorAll('.navbar-item').forEach(btn => btn.classList.remove('active'));
-            if(event) event.target.classList.add('active');
-            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active-view'));
-            document.getElementById(viewId).classList.add('active-view');
-            if(viewId === 'map-view' && map) { setTimeout(() => { map.invalidateSize(); }, 50); }
-        }
-
-        function updateCounters() {
-            const counts = { all: trainsData.length, ave: 0, avlo: 0, alvia: 0, md: 0, rodalies: 0 };
-            trainsData.forEach(t => { if(counts[t.type] !== undefined) counts[t.type]++; });
-            Object.keys(counts).forEach(k => { document.getElementById(`count-${k}`).innerText = counts[k]; });
-        }
-
-        function getFiltered() {
-            return trainsData.filter(t => {
-                const fMatch = activeFilter === 'all' || t.type === activeFilter;
-                const q = searchQuery.toLowerCase();
-                return fMatch && (!q || t.id.includes(q) || t.label.toLowerCase().includes(q) || t.origin.toLowerCase().includes(q) || t.destination.toLowerCase().includes(q));
-            });
-        }
-
-        function render(resetPolyline = true) {
-            const list = document.getElementById('trainList');
-            if (!list) return;
-            
-            // Mantener scroll si es actualización cíclica
-            const currentScroll = list.scrollTop;
-            list.innerHTML = '';
-            markersGroup.clearLayers();
-            
-            if(resetPolyline && routePolyline) {
-                map.removeLayer(routePolyline);
-                routePolyline = null;
-            }
-
-            const filtered = getFiltered();
-
-            filtered.forEach(t => {
-                const card = document.createElement('div');
-                card.className = `train-card ${selectedTrainId === t.id ? 'active' : ''}`;
-                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div><span class="train-status">En marcha</span></div><div class="train-route">${t.origin} → ${t.destination}</div><div class="train-eta">Llegada: ${t.eta} <span class="metric-delay-tag" style="background:${t.delay !== '0 min' ? 'rgba(239,68,68,0.2)':'rgba(60,208,112,0.15)'};color:${t.delay !== '0 min'?'var(--accent-red)':'var(--accent-green)'}">${t.delay}</span></div>`;
-                card.addEventListener('click', () => select(t));
-                list.appendChild(card);
-
-                const c = typeColors[t.type] || '#ffffff';
-                const marker = L.marker(t.coordinates, {
-                    icon: L.divIcon({ className: 'c-icon', html: `<div style="background:${c};width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px ${c};"></div>` })
-                });
-                marker.on('click', () => { select(t, false); });
-                markersGroup.addLayer(marker);
-            });
-            
-            list.scrollTop = currentScroll;
-
-            // Redibujar la línea si el tren seleccionado sigue activo y moviéndose
-            if(!resetPolyline && selectedTrainId) {
-                const activeTrain = trainsData.find(x => x.id === selectedTrainId);
-                if(activeTrain) drawRouteLine(activeTrain);
-            }
-        }
-
-        function drawRouteLine(t) {
-            if(routePolyline) map.removeLayer(routePolyline);
-            const c = typeColors[t.type] || '#3182ce';
-            
-            // Dibujar línea desde el origen real del tren pasando por su posición viva hasta el destino en tierra
-            routePolyline = L.polyline([t.startCoords, t.coordinates, t.endCoords], {
-                color: c,
-                weight: 3,
-                dashArray: '5, 7',
-                opacity: 0.8
-            }).addTo(map);
-        }
-
-        function renderFullGrid() {
-            const grid = document.getElementById('fullTrainsGrid');
-            if(!grid) return;
-            grid.innerHTML = '';
-            trainsData.forEach(t => {
-                const card = document.createElement('div');
-                card.className = 'train-card';
-                card.innerHTML = `<div class="train-card-header"><div><span class="badge badge-${t.type}">${t.label}</span><span class="train-id">#${t.id}</span></div></div><div class="train-route" style="font-weight:bold;margin:8px 0;">${t.origin} → ${t.destination}</div><div class="train-eta">Velocidad: ${t.speed}</div>`;
-                card.addEventListener('click', () => { switchView('map-view'); select(t, true); });
-                grid.appendChild(card);
-            });
-        }
-
-        function select(t, fly = true) {
-            selectedTrainId = t.id;
-            document.querySelectorAll('.train-card').forEach(c => c.classList.remove('active'));
-            
-            // Dibujar la polilínea del trayecto comercial en tierra
-            drawRouteLine(t);
-
-            if(fly && map) map.flyTo(t.coordinates, 7);
-
-            document.getElementById('emptySidebarMsg').style.display = 'none';
-            document.getElementById('sidebarContent').style.display = 'block';
-            document.getElementById('detailBadge').className = `badge badge-${t.type}`;
-            document.getElementById('detailBadge').innerText = t.label;
-            document.getElementById('detailId').innerText = `#${t.id}`;
-            document.getElementById('detailRoute').innerText = `${t.origin} → ${t.destination}`;
-            document.getElementById('metricLocation').innerText = t.currentLocationName;
-            document.getElementById('metricSpeed').innerText = t.speed;
-            document.getElementById('metricEta').innerText = `${t.eta} (${t.delay})`;
-
-            const tc = document.getElementById('timelineContainer');
-            tc.innerHTML = '';
-            t.timeline.forEach(n => {
-                const i = document.createElement('div');
-                i.className = `timeline-item ${n.state}`;
-                i.innerHTML = `<div class="timeline-node"></div><div class="timeline-station-name">${n.station}</div><div class="timeline-time">${n.time}</div>`;
-                tc.appendChild(i);
-            });
-
-            // Refrescar clases active en la lista sin perder la polilínea
-            document.querySelectorAll('.train-card').forEach((c, idx) => {
-                const filtered = getFiltered();
-                if(filtered[idx] && filtered[idx].id === t.id) c.classList.add('active');
-            });
-        }
-
-        function setupEvents() {
-            document.getElementById('trainSearch').addEventListener('input', (e) => { searchQuery = e.target.value; render(true); });
-            document.querySelectorAll('.filter-pill').forEach(p => {
-                p.addEventListener('click', () => {
-                    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-                    p.classList.add('active');
-                    activeFilter = p.getAttribute('data-filter');
-                    render(true);
-                });
-            });
-        }
-    </script>
-</body>
-</html>
+    
+.navbar{gap:12px}.navbar-brand{flex-wrap:wrap}.status-indicator{font-size:12px;color:var(--text-muted)}.status-indicator.ok{color:var(--accent-green)}.status-indicator.error{color:#fca5a5}.toolbar{display:flex;gap:8px;align-items:center;padding:10px 15px;border-bottom:1px solid var(--border-color);flex-wrap:wrap}.small-btn{background:var(--bg-card);color:var(--text-main);border:1px solid var(--border-color);padding:7px 10px;border-radius:6px;cursor:pointer}.small-btn:focus-visible,.filter-pill:focus-visible,.navbar-item:focus-visible,.train-card:focus-visible{outline:2px solid #79bbff;outline-offset:2px}.notice{padding:12px 15px;color:var(--text-muted);font-size:12px;line-height:1.5}.notice.warning{color:#ffd38c}.detail-value{overflow-wrap:anywhere;text-align:right;max-width:55%}.train-card:hover{background:var(--bg-card-active)}.train-card{width:100%;color:inherit;text-align:left;font:inherit}.source-footer{font-size:11px;color:var(--text-muted);padding:8px 15px;border-top:1px solid var(--border-color)}a{color:#9acaff}.map-note{position:absolute;bottom:28px;left:12px;z-index:500;background:rgba(18,24,36,.93);padding:8px 10px;border-radius:7px;font-size:11px;color:var(--text-muted);max-width:300px;pointer-events:none}.timeline-container{max-height:40vh}.incident-card{border-left:4px solid var(--accent-red)}.leaflet-container{filter:none}.leaflet-tile-pane{filter:invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)}.leaflet-control-attribution{background:rgba(18,24,36,.85)!important;color:#b4c4d8!important}.leaflet-control-attribution a{color:#86baff!important}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#182232;color:white}
+@media(max-width:1100px){.sidebar{width:270px}.sidebar-right{width:270px}}@media(max-width:800px){body{height:100dvh}.navbar{height:auto;min-height:55px;flex-wrap:wrap;padding:10px}.navbar-menu{width:100%;justify-content:space-around}.app-container{min-height:0}.view-section.active-view{flex-direction:column;overflow-y:auto}.sidebar{width:100%;flex:0 0 auto;max-height:38vh;border-right:0;border-bottom:1px solid var(--border-color)}.sidebar-right{max-height:none;border-left:0}.map-wrapper{height:48vh;min-height:300px;flex:none}.train-list-container{min-height:80px}.filter-grid{grid-template-columns:repeat(3,1fr);padding:10px}.full-list-view,.incidents-view{padding:15px}.map-note{bottom:25px}}
+</style></head><body>
+<header class="navbar"><div class="navbar-brand">Trenes España <span id="liveLabel" class="status-indicator">Conectando…</span></div><nav class="navbar-menu" aria-label="Vistas"><button class="navbar-item active" data-view="map-view">Mapa</button><button class="navbar-item" data-view="trains-view">Trenes</button><button class="navbar-item" data-view="incidents-view">Información</button></nav></header>
+<main class="app-container"><div id="map-view" class="view-section active-view"><aside class="sidebar"><div class="search-box"><input id="trainSearch" class="search-input" type="search" placeholder="Número, origen, destino, línea…" aria-label="Buscar tren"></div><div class="filter-grid"><button class="filter-pill pill-todos active" data-filter="all">Todos <span class="pill-count" id="count-all">0</span></button><button class="filter-pill pill-ave" data-filter="ave">AVE <span class="pill-count" id="count-ave">0</span></button><button class="filter-pill pill-avlo" data-filter="avlo">Avlo <span class="pill-count" id="count-avlo">0</span></button><button class="filter-pill pill-alvia" data-filter="alvia">Alvia <span class="pill-count" id="count-alvia">0</span></button><button class="filter-pill pill-md" data-filter="md">Otros LD/MD <span class="pill-count" id="count-md">0</span></button><button class="filter-pill pill-rodalies" data-filter="rodalies">Cercanías <span class="pill-count" id="count-rodalies">0</span></button></div><div class="toolbar"><button id="refreshBtn" class="small-btn">Actualizar</button><button id="followBtn" class="small-btn" aria-pressed="false">Seguir: no</button><span id="lastUpdate" class="status-indicator">Sin datos</span></div><div id="trainList" class="train-list-container" aria-live="off"><div class="notice">Esperando información de trenes…</div></div><div class="source-footer">Datos: <a href="https://radardetrenes.com" target="_blank" rel="noopener noreferrer">RadarDeTrenes</a> · Renfe / Adif</div></aside><section class="map-wrapper"><div id="map" role="application" aria-label="Mapa de posiciones de trenes"></div><div class="map-note">● GPS en larga/media distancia cuando esté disponible · ◌ Cercanías: posición aproximada. Los datos pueden tener retraso.</div></section><aside class="sidebar sidebar-right"><div id="emptySidebarMsg" class="no-selection-msg">Selecciona un tren para ver su información.</div><div id="sidebarContent" style="display:none"><div class="detail-header"><div class="detail-title-row"><span class="badge" id="detailBadge">Tren</span><span class="train-id" id="detailId"></span></div><div class="detail-route-title" id="detailRoute"></div></div><div class="metrics-grid"><div class="metric-row"><span class="metric-label">Posición</span><span class="detail-value" id="metricLocation">—</span></div><div class="metric-row"><span class="metric-label">Próxima estación</span><span class="detail-value" id="metricNext">—</span></div><div class="metric-row"><span class="metric-label">Retraso</span><span class="detail-value" id="metricDelay">—</span></div><div class="metric-row"><span class="metric-label">Velocidad</span><span class="detail-value" id="metricSpeed">—</span></div><div class="metric-row"><span class="metric-label">Actualizado</span><span class="detail-value" id="metricTime">—</span></div></div><div class="toolbar"><button class="small-btn" id="routeBtn">Consultar paradas y ruta</button></div><div id="timelineContainer" class="timeline-container"><div class="notice">Pulsa «Consultar paradas y ruta».</div></div></div></aside></div>
+<div id="trains-view" class="view-section full-list-view"><h2 class="section-title">Trenes comunicados por la fuente</h2><p class="notice">Solo se muestran trenes recibidos de la API. La ausencia de un tren no significa que esté cancelado.</p><div id="fullTrainsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px"></div></div><div id="incidents-view" class="view-section incidents-view"><h2 class="section-title">Información y fuentes</h2><div class="incidents-grid"><div class="incident-card"><div class="incident-title">Sin incidencias inventadas</div><div class="incident-desc">Esta versión no muestra alertas no verificadas. Para avisos operativos consulta <a href="https://www.renfe.com/" target="_blank" rel="noopener noreferrer">Renfe</a>, <a href="https://www.adif.es/" target="_blank" rel="noopener noreferrer">Adif</a> y los canales oficiales de tu servicio.</div></div><div class="incident-card"><div class="incident-title">Origen y actualización</div><div class="incident-desc">Datos agregados por <a href="https://radardetrenes.com/docs" target="_blank" rel="noopener noreferrer">RadarDeTrenes</a> a partir de fuentes públicas de Renfe y Adif. Los trenes de Cercanías pueden tener posiciones estimadas; los feeds pueden demorarse o fallar. No es una web oficial.</div></div><div class="incident-card"><div class="incident-title">Cobertura</div><div class="incident-desc">Se muestran los servicios que comunica la API, no necesariamente todos los operadores ni todos los trenes de España. No utilices este mapa como única fuente para decisiones de viaje.</div></div></div></div></main><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+'use strict';
+const API='https://radardetrenes.com/api/v1';
+const $=id=>document.getElementById(id);
+const colors={ave:'#b0357c',avlo:'#a3cc39',alvia:'#2384af',md:'#e07a3c',rodalies:'#1d92bd'};
+let trains=[],selectedId=null,filter='all',search='',follow=false,routeLayer=null,refreshTimer=null,detailRequest=0,lastReceived=null,requestInFlight=false;
+const map=L.map('map').setView([40.42,-3.7],6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+const markerLayer=L.layerGroup().addTo(map);const markers=new Map();
+function text(v,f='No disponible'){return v===null||v===undefined||String(v).trim()===''?f:String(v)}
+function stamp(v){if(!v)return 'No disponible';const d=new Date(v);return Number.isNaN(d.getTime())?'No disponible':d.toLocaleString('es-ES',{dateStyle:'short',timeStyle:'medium'});}
+function typeOf(t){const product=String(t.productName||t.product||t.serviceName||'').toLowerCase();const ty=String(t.type||'').toLowerCase();if(ty.includes('commuter')||ty.includes('cercan')||ty.includes('rodal')||ty==='c')return 'rodalies';if(product.includes('avlo'))return 'avlo';if(product.includes('alvia'))return 'alvia';if(product.includes('ave'))return 'ave';return 'md';}
+function normalize(t,i){const latitude=Number(t.latitude??t.lat??t.position?.latitude);const longitude=Number(t.longitude??t.lng??t.lon??t.position?.longitude);if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)return null;const id=text(t.id??t.trainId??t.trainCode,`tren-${i}`);return {id,code:text(t.trainCode??t.number??id),type:typeOf(t),label:text(t.productName??t.lineName??t.line??t.serviceName,(typeOf(t)==='rodalies'?'Cercanías':'LD/MD')),origin:text(t.originName??t.origin),destination:text(t.destinationName??t.destination),next:text(t.nextStationName??t.nextStation),delay:t.delayMinutes??t.delay??null,speed:t.speedKmh??t.speedKmH??t.speed??null,time:t.timestamp??t.updatedAt??null,lat:latitude,lng:longitude,raw:t};}
+function delayLabel(t){const n=Number(t.delay);return t.delay===null||t.delay===''||!Number.isFinite(n)?'Sin dato':(n>0?'+':'')+n+' min';}
+function status(s,kind=''){const el=$('liveLabel');el.textContent=s;el.className='status-indicator '+kind;}
+function filtered(){const q=search.trim().toLocaleLowerCase('es');return trains.filter(t=>(filter==='all'||t.type===filter)&&(!q||[t.id,t.code,t.label,t.origin,t.destination,t.next].some(v=>String(v).toLocaleLowerCase('es').includes(q))));}
+function updateCounters(){const counts={all:trains.length,ave:0,avlo:0,alvia:0,md:0,rodalies:0};trains.forEach(t=>counts[t.type]++);Object.entries(counts).forEach(([k,v])=>$('count-'+k).textContent=v);}
+function node(tag,cls,value){const el=document.createElement(tag);if(cls)el.className=cls;if(value!==undefined)el.textContent=value;return el;}
+function card(t){const b=node('button','train-card'+(t.id===selectedId?' active':''));b.type='button';const h=node('div','train-card-header');const left=node('div');left.append(node('span','badge badge-'+t.type,t.label),node('span','train-id','#'+t.code));h.append(left,node('span','train-status',t.type==='rodalies'?'Posición estimada':'Posición publicada'));b.append(h,node('div','train-route',t.origin+' → '+t.destination),node('div','train-eta','Retraso: '+delayLabel(t)+' · Próxima: '+t.next));b.addEventListener('click',()=>selectTrain(t.id));return b;}
+function render(){const arr=filtered();const list=$('trainList');list.replaceChildren();if(!arr.length)list.append(node('div','notice',trains.length?'No hay trenes que coincidan con los filtros.':'No hay posiciones disponibles en este momento.'));const frag=document.createDocumentFragment();arr.forEach(t=>frag.append(card(t)));list.append(frag);const grid=$('fullTrainsGrid');grid.replaceChildren();const gfrag=document.createDocumentFragment();arr.forEach(t=>gfrag.append(card(t)));grid.append(gfrag);syncMarkers(arr);}
+function syncMarkers(arr){const ids=new Set(arr.map(t=>t.id));for(const [id,m] of markers){if(!ids.has(id)){markerLayer.removeLayer(m);markers.delete(id);}}arr.forEach(t=>{let m=markers.get(t.id);if(m){m.setLatLng([t.lat,t.lng]);}else{const c=colors[t.type];const icon=L.divIcon({className:'',html:`<div style="width:13px;height:13px;border-radius:50%;background:${c};border:2px solid #fff;box-shadow:0 0 8px ${c}"></div>`,iconSize:[13,13],iconAnchor:[6,6]});m=L.marker([t.lat,t.lng],{icon,title:t.code+' '+t.origin+' - '+t.destination}).addTo(markerLayer);m.on('click',()=>selectTrain(t.id,false));markers.set(t.id,m);}});}
+function selectTrain(id,fly=true){selectedId=id;const t=trains.find(x=>x.id===id);if(!t)return;fillDetail(t);render();if(fly)map.flyTo([t.lat,t.lng],Math.max(map.getZoom(),8),{duration:0.8});if(follow)map.panTo([t.lat,t.lng]);}
+function fillDetail(t){$('emptySidebarMsg').style.display='none';$('sidebarContent').style.display='block';$('detailBadge').className='badge badge-'+t.type;$('detailBadge').textContent=t.label;$('detailId').textContent='#'+t.code;$('detailRoute').textContent=t.origin+' → '+t.destination;$('metricLocation').textContent=t.type==='rodalies'?'Aproximada ('+t.lat.toFixed(4)+', '+t.lng.toFixed(4)+')':t.lat.toFixed(4)+', '+t.lng.toFixed(4);$('metricNext').textContent=t.next;$('metricDelay').textContent=delayLabel(t);$('metricSpeed').textContent=t.speed===null?'No disponible':text(t.speed)+' km/h';$('metricTime').textContent=stamp(t.time);}
+function switchView(id){document.querySelectorAll('.navbar-item').forEach(b=>b.classList.toggle('active',b.dataset.view===id));document.querySelectorAll('.view-section').forEach(v=>v.classList.toggle('active-view',v.id===id));if(id==='map-view')setTimeout(()=>map.invalidateSize(),80);}
+async function fetchJson(url){const ctrl=new AbortController();const timeout=setTimeout(()=>ctrl.abort(),12000);try{const r=await fetch(url,{signal:ctrl.signal,cache:'no-store',headers:{Accept:'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(timeout);}}
+async function refresh(){if(requestInFlight)return;requestInFlight=true;$('refreshBtn').disabled=true;try{const data=await fetchJson(API+'/fleet?type=all');if(!Array.isArray(data.trains))throw new Error('Formato de datos inesperado');const next=data.trains.map(normalize).filter(Boolean);const unique=new Map(next.map(t=>[t.id,t]));trains=[...unique.values()];lastReceived=Date.now();status('Datos conectados','ok');$('lastUpdate').textContent='Fuente: '+stamp(data.updatedAt||new Date().toISOString());updateCounters();render();if(selectedId){const t=trains.find(x=>x.id===selectedId);if(t){fillDetail(t);if(follow)map.panTo([t.lat,t.lng]);}else{selectedId=null;$('sidebarContent').style.display='none';$('emptySidebarMsg').style.display='block';$('emptySidebarMsg').textContent='El tren seleccionado ya no figura en la flota comunicada.';clearRoute();}}}catch(e){status('Sin conexión a datos','error');$('lastUpdate').textContent=lastReceived?'Última recepción: '+stamp(lastReceived):'Sin datos recibidos';if(!lastReceived){trains=[];updateCounters();render();}console.error('No se pudo actualizar la flota:',e);}finally{requestInFlight=false;$('refreshBtn').disabled=false;}}
+function clearRoute(){if(routeLayer){map.removeLayer(routeLayer);routeLayer=null;}}
+function extractStops(data){const a=Array.isArray(data)?data:(data.stops??data.route?.stops??data.stations??[]);return Array.isArray(a)?a:[];}
+function geometry(data){const candidates=[data.geometry,data.route?.geometry,data.geojson,data.route?.geojson,data.coordinates,data.route?.coordinates];for(const v of candidates){if(!v)continue;try{if(v.type==='Feature')return L.geoJSON(v);if(v.type==='LineString'||v.type==='MultiLineString')return L.geoJSON(v);if(Array.isArray(v)&&v.length>1&&Array.isArray(v[0]))return L.polyline(v.map(p=>[Number(p[1]),Number(p[0])]));}catch(e){console.warn('Geometría no reconocida',e);}}return null;}
+async function loadRoute(){const t=trains.find(x=>x.id===selectedId);if(!t)return;const req=++detailRequest;const area=$('timelineContainer');area.replaceChildren(node('div','notice','Consultando paradas y ruta…'));clearRoute();const [stopsResult,routeResult]=await Promise.allSettled([fetchJson(API+'/trains/'+encodeURIComponent(t.id)+'/stops'),t.id.startsWith('ld-')?fetchJson(API+'/trains/'+encodeURIComponent(t.id)+'/route'):Promise.resolve(null)]);if(req!==detailRequest||selectedId!==t.id)return;const stops=stopsResult.status==='fulfilled'?extractStops(stopsResult.value):[];area.replaceChildren();if(stops.length){for(const s of stops){const item=node('div','timeline-item');item.append(node('div','timeline-node'),node('div','timeline-station-name',text(s.stationName??s.name??s.station?.name,'Estación')),node('div','timeline-time',text(s.actualArrival??s.arrivalTime??s.scheduledArrival??s.departureTime??s.time,'Hora no disponible')));area.append(item);}}else area.append(node('div','notice','No se han podido obtener paradas para este tren.'));if(routeResult.status==='fulfilled'&&routeResult.value){const layer=geometry(routeResult.value);if(layer){routeLayer=layer.addTo(map);try{map.fitBounds(layer.getBounds(),{padding:[25,25]});}catch(e){}}}if(!routeLayer)area.append(node('div','notice','El trazado geográfico de esta ruta no está disponible; no se dibuja una línea recta ficticia.'));}
+document.querySelectorAll('.navbar-item').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+document.querySelectorAll('.filter-pill').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('.filter-pill').forEach(x=>x.classList.toggle('active',x===b));render();}));
+$('trainSearch').addEventListener('input',e=>{search=e.target.value;render();});$('refreshBtn').addEventListener('click',refresh);$('routeBtn').addEventListener('click',loadRoute);$('followBtn').addEventListener('click',()=>{follow=!follow;$('followBtn').textContent='Seguir: '+(follow?'sí':'no');$('followBtn').setAttribute('aria-pressed',String(follow));if(follow&&selectedId){const t=trains.find(x=>x.id===selectedId);if(t)map.panTo([t.lat,t.lng]);}});
+refresh();refreshTimer=setInterval(()=>{if(!document.hidden)refresh();},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+</script></body></html>
