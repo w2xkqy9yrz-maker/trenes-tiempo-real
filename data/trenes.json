@@ -1,1 +1,1 @@
-{"generatedAt":null,"stale":true,"count":0,"sources":{},"trains":[],"notice":"Ejecuta el workflow de GitHub Actions para obtener datos."}
+{"generatedAt":"2026-11-05T00:26:54.434122+00:00","stale":false,"count":0,"sources":{"renfe_cercanias":{"ok":true,"count":0},"renfe_larga_media":{"ok":true,"count":0},"radar":{"ok":true,"count":0},"osiris":{"ok":false,"error":"HTTP Error 400: Bad Request","note":"Diagnóstico solamente"}},"trains":[],"notice":"Datos informativos, no oficiales. La ausencia de un tren no implica cancelación."}
