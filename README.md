@@ -1,68 +1,29 @@
-# 🚆 Trenes España en Tiempo Real
+# 🚆 Trenes España — mapa público
 
-**Mapa interactivo para explorar la circulación ferroviaria en España.** Una web pública, gratuita y adaptable a móviles, creada para consultar trenes y recorridos desde el navegador.
+[Ver web](https://w2xkqy9yrz-maker.github.io/trenes-tiempo-real/)
 
-🌐 **[Abrir el mapa de trenes](https://w2xkqy9yrz-maker.github.io/trenes-tiempo-real/)**
+Mapa ferroviario independiente basado en datos públicos. No es un servicio oficial ni garantiza la posición de todos los trenes.
 
-> **Estado del proyecto:** en desarrollo y validación. La disponibilidad, precisión y frecuencia de actualización de los datos dependen de los servicios externos. La web no es un servicio oficial de Renfe ni de Adif.
+## Cómo funciona
 
-## 🗺️ Funcionalidades
+1. GitHub Actions ejecuta `scripts/update.py` aproximadamente cada 5 minutos (la programación puede retrasarse).
+2. El script consulta Renfe Cercanías, Renfe larga/media distancia y RadarDeTrenes **desde el servidor**, evitando los bloqueos CORS del navegador.
+3. Escribe `data/trenes.json` con el estado de cada fuente, posiciones y fecha de generación.
+4. `index.html` consulta ese archivo en GitHub Pages. No utiliza claves privadas.
+5. OSIRIS se comprueba de manera experimental, **sin incorporar trenes** hasta confirmar la cobertura y el esquema de sus datos.
 
-- Mapa interactivo de España con diseño oscuro.
-- Consulta de trenes proporcionados por una fuente externa de información ferroviaria.
-- Búsqueda por tren, origen o destino y filtros por categoría, según los datos disponibles.
-- Selección de trenes para consultar su información y, cuando la fuente lo permite, sus paradas y recorrido.
-- Actualización periódica de los datos y avisos sobre el estado de la conexión.
-- Interfaz adaptada a ordenador, tableta y móvil.
+## Publicación
 
-**Importante:** no todos los servicios ferroviarios tienen necesariamente cobertura. Las posiciones pueden ser observadas o estimadas según la fuente; las velocidades, retrasos y horarios solo deben considerarse disponibles cuando el proveedor los facilite. Una posición mostrada en el mapa no garantiza seguimiento GPS directo.
+Subir `index.html`, `scripts/update.py`, `.github/workflows/update-trains.yml`, `data/trenes.json` y este README a la raíz de la rama `main`. En **Settings → Pages**, publicar desde `main` / raíz. En **Settings → Actions → General → Workflow permissions**, permitir **Read and write permissions** para que el workflow actualice el JSON. Ejecutar manualmente **Actions → Actualizar posiciones ferroviarias → Run workflow** para iniciar.
 
-## 🧰 Tecnologías
+Si GitHub Pages está configurado para desplegar mediante GitHub Actions, usar el workflow de Pages apropiado o configurar publicación desde rama. GitHub puede retrasar o deshabilitar tareas programadas por inactividad.
 
-| Tecnología | Uso |
-| --- | --- |
-| HTML, CSS y JavaScript | Interfaz y lógica de la aplicación |
-| [Leaflet](https://leafletjs.com/) | Mapa interactivo |
-| [OpenStreetMap](https://www.openstreetmap.org/copyright) | Cartografía base |
-| [RadarDeTrenes](https://radardetrenes.com/docs) | API externa de información ferroviaria |
-| GitHub Pages | Alojamiento estático de la web |
+## Limitaciones
 
-## 🚀 Cómo utilizar la web
+- La cobertura depende de las fuentes; un tren ausente no está necesariamente cancelado.
+- Las coordenadas pueden ser aproximadas o antiguas. Se excluyen datos con marca temporal de más de 2 horas.
+- Los registros de diferentes fuentes se mantienen separados si no se puede probar que son el mismo tren, evitando deduplicaciones falsas.
+- La integración de OSIRIS es un diagnóstico; no hay evidencia verificada de una flota española adicional.
+- Si fallan todas las fuentes, se conservan datos previos etiquetados como antiguos; no se inventan posiciones.
 
-1. Abre el [mapa público](https://w2xkqy9yrz-maker.github.io/trenes-tiempo-real/).
-2. Espera a que se carguen los datos disponibles.
-3. Utiliza los filtros o el buscador para encontrar un servicio.
-4. Selecciona un tren para consultar los detalles que proporcione la fuente.
-5. Comprueba el estado de conexión y la última actualización antes de interpretar su posición.
-
-## 💻 Ejecutar el proyecto
-
-No requiere instalación ni compilación. Basta con abrir `index.html` en un navegador moderno. Para probar llamadas a servicios externos en un entorno local, puede ser preferible servir la carpeta mediante un servidor HTTP local.
-
-Para publicarlo en GitHub Pages, activa **Settings → Pages → Deploy from a branch**, selecciona `main` y la carpeta `/ (root)`.
-
-## 🔎 Fuentes y limitaciones
-
-La aplicación consulta un servicio externo y no controla su cobertura, continuidad, límites de uso ni exactitud. Puede haber trenes ausentes, posiciones aproximadas o información desactualizada. Las incidencias y horarios oficiales deben contrastarse con los canales de los operadores.
-
-- [Renfe](https://www.renfe.com/)
-- [Adif](https://www.adif.es/)
-- [Documentación de RadarDeTrenes](https://radardetrenes.com/docs)
-
-Los nombres de operadores se utilizan con fines descriptivos. Este proyecto es independiente y no está afiliado oficialmente a ellos.
-
-## 🛠️ Próximas mejoras
-
-- [ ] Verificar la cobertura real de cada categoría de tren.
-- [ ] Mejorar la visualización de recorridos y paradas.
-- [ ] Añadir favoritos y opciones de accesibilidad.
-- [ ] Incorporar avisos de incidencias verificadas, si existe una fuente compatible.
-- [ ] Optimizar rendimiento y experiencia móvil.
-
-## 🤝 Contribuciones
-
-Puedes proponer mejoras o comunicar errores mediante las **Issues** del repositorio.
-
----
-
-**Proyecto independiente de visualización ferroviaria.** No utilizar como única fuente para tomar decisiones de viaje.
+Fuentes: [Renfe Data](https://data.renfe.com/) · [RadarDeTrenes](https://radardetrenes.com/docs) · [OSIRIS](https://www.osirisai.live/).
