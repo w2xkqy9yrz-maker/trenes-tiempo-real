@@ -1,0 +1,5 @@
+name = "trenes-tiempo-real-api"
+main = "index.js"
+compatibility_date = "2026-11-01"
+[vars]
+ALLOWED_ORIGIN = "https://w2xkqy9yrz-maker.github.io"
